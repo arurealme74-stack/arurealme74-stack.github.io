@@ -33,20 +33,22 @@
             sendEmailVerification,
             sendPasswordResetEmail
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        
+        // IMPORT REALTIME DATABASE (bukan Firestore!)
         import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            setDoc, 
-            updateDoc, 
-            arrayUnion,
-            arrayRemove
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+            getDatabase, 
+            ref, 
+            set, 
+            get, 
+            push, 
+            remove,
+            onValue
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const db = getDatabase(app);  // Realtime Database
         const googleProvider = new GoogleAuthProvider();
 
         // Expose auth untuk fungsi lain
@@ -106,7 +108,6 @@
         // ========== Format Alamat ke Object ==========
         function getAddressFromForm() {
             return {
-                id: Date.now(),
                 label: document.getElementById('addressLabel')?.value || 'Rumah',
                 name: document.getElementById('addressName')?.value.trim() || '',
                 phone: document.getElementById('addressPhone')?.value.trim() || '',
@@ -116,7 +117,8 @@
                 district: document.getElementById('addressDistrict')?.value.trim() || '',
                 city: document.getElementById('addressCity')?.value.trim() || '',
                 province: document.getElementById('addressProvince')?.value.trim() || '',
-                postal: document.getElementById('addressPostal')?.value.trim() || ''
+                postal: document.getElementById('addressPostal')?.value.trim() || '',
+                createdAt: new Date().toISOString()
             };
         }
 
@@ -125,6 +127,57 @@
             if (addr.rtRw) full += `, RT/RW: ${addr.rtRw}`;
             full += `\n${addr.village}, ${addr.district}\n${addr.city}, ${addr.province} ${addr.postal}`;
             return { ...addr, full };
+        }
+
+        // ========== FUNGSI REALTIME DATABASE ==========
+        
+        // Ambil referensi alamat user
+        function getUserAddressesRef(userId) {
+            return ref(db, `users/${userId}/addresses`);
+        }
+
+        // Simpan alamat ke Realtime Database
+        async function saveAddressToRTDB(address) {
+            const user = auth.currentUser;
+            if (!user) throw new Error('User tidak login');
+            
+            const addressesRef = ref(db, `users/${user.uid}/addresses`);
+            const newAddressRef = push(addressesRef);
+            await set(newAddressRef, address);
+            console.log("✅ Alamat tersimpan di Realtime Database");
+            return true;
+        }
+
+        // Ambil alamat dari Realtime Database
+        async function loadAddressesFromRTDB() {
+            const user = auth.currentUser;
+            if (!user) return [];
+            
+            const addressesRef = ref(db, `users/${user.uid}/addresses`);
+            const snapshot = await get(addressesRef);
+            
+            const addresses = [];
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    addresses.push({
+                        id: childSnapshot.key,
+                        ...childSnapshot.val()
+                    });
+                });
+            }
+            // Urutkan dari yang terbaru
+            addresses.reverse();
+            return addresses;
+        }
+
+        // Hapus alamat dari Realtime Database
+        async function deleteAddressFromRTDB(addressId) {
+            const user = auth.currentUser;
+            if (!user) throw new Error('User tidak login');
+            
+            const addressRef = ref(db, `users/${user.uid}/addresses/${addressId}`);
+            await remove(addressRef);
+            console.log("✅ Alamat dihapus dari Realtime Database");
         }
 
         // ========== Load User Profile Data ==========
@@ -149,19 +202,17 @@
                     '<span style="color: #d32f2f;">✗ Belum diverifikasi</span>';
             }
             
-            // Load alamat dari Firestore
+            // Load alamat dari Realtime Database
             try {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDoc = await getDoc(userDocRef);
-                
-                let addresses = [];
-                if (userDoc.exists() && userDoc.data().addresses) {
-                    addresses = userDoc.data().addresses;
-                }
-                
+                const addresses = await loadAddressesFromRTDB();
+                console.log("📦 Alamat dimuat:", addresses.length, "alamat");
                 renderAddresses(addresses);
             } catch (error) {
                 console.error('Error loading addresses:', error);
+                const addressList = document.getElementById('addressList');
+                if (addressList) {
+                    addressList.innerHTML = '<div class="empty-address">Gagal memuat alamat. Pastikan Realtime Database sudah diaktifkan.</div>';
+                }
             }
         }
 
@@ -174,37 +225,21 @@
                 return;
             }
             
-            addressList.innerHTML = addresses.map((addr, index) => {
-                // Jika format lama (string biasa)
-                if (typeof addr === 'string') {
-                    return `
-                        <div class="address-card">
-                            <div class="address-label">📍 Alamat</div>
-                            <div class="address-detail">${escapeHtml(addr)}</div>
-                            <div class="address-actions">
-                                <button class="delete-address" data-index="${index}" onclick="deleteAddress(${index})">🗑️ Hapus</button>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Format baru dengan detail lengkap
-                return `
-                    <div class="address-card">
-                        <div class="address-label">🏠 ${escapeHtml(addr.label || 'Alamat')}</div>
-                        <div class="address-detail">
-                            <div class="detail-name">👤 ${escapeHtml(addr.name)}</div>
-                            <div class="detail-phone">📞 ${escapeHtml(addr.phone)}</div>
-                            <div>📍 ${escapeHtml(addr.street)}${addr.rtRw ? ', RT/RW: ' + escapeHtml(addr.rtRw) : ''}</div>
-                            <div>${escapeHtml(addr.village)}, ${escapeHtml(addr.district)}</div>
-                            <div>${escapeHtml(addr.city)}, ${escapeHtml(addr.province)} ${escapeHtml(addr.postal)}</div>
-                        </div>
-                        <div class="address-actions">
-                            <button class="delete-address" data-index="${index}" onclick="deleteAddress(${index})">🗑️ Hapus</button>
-                        </div>
+            addressList.innerHTML = addresses.map((addr) => `
+                <div class="address-card">
+                    <div class="address-label">🏠 ${escapeHtml(addr.label || 'Alamat')}</div>
+                    <div class="address-detail">
+                        <div class="detail-name">👤 ${escapeHtml(addr.name)}</div>
+                        <div class="detail-phone">📞 ${escapeHtml(addr.phone)}</div>
+                        <div>📍 ${escapeHtml(addr.street)}${addr.rtRw ? ', RT/RW: ' + escapeHtml(addr.rtRw) : ''}</div>
+                        <div>${escapeHtml(addr.village)}, ${escapeHtml(addr.district)}</div>
+                        <div>${escapeHtml(addr.city)}, ${escapeHtml(addr.province)} ${escapeHtml(addr.postal)}</div>
                     </div>
-                `;
-            }).join('');
+                    <div class="address-actions">
+                        <button class="delete-address" onclick="deleteAddress('${addr.id}')">🗑️ Hapus</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function escapeHtml(text) {
@@ -225,8 +260,10 @@
             });
         }
 
-        // ========== Add Address ==========
+        // ========== ADD ADDRESS (Realtime Database) ==========
         window.addAddress = async function() {
+            console.log("🟢 Fungsi addAddress dipanggil");
+            
             const addressData = getAddressFromForm();
             
             // Validasi
@@ -263,16 +300,16 @@
                 return;
             }
             
-            const formattedAddress = formatAddressDisplay(addressData);
             const user = auth.currentUser;
-            if (!user) return;
+            if (!user) {
+                alert('Anda harus login terlebih dahulu!');
+                return;
+            }
             
-            const userDocRef = doc(db, 'users', user.uid);
+            const formattedAddress = formatAddressDisplay(addressData);
             
             try {
-                await setDoc(userDocRef, {
-                    addresses: arrayUnion(formattedAddress)
-                }, { merge: true });
+                await saveAddressToRTDB(formattedAddress);
                 
                 // Reset form
                 document.getElementById('addressName').value = '';
@@ -292,39 +329,31 @@
                     if (btn.textContent.includes('Rumah')) btn.classList.add('active');
                 });
                 
-                loadUserProfile();
+                // Refresh tampilan alamat
+                await loadUserProfile();
                 alert('✅ Alamat berhasil ditambahkan!');
+                
             } catch (error) {
-                console.error(error);
+                console.error("❌ ERROR:", error);
                 alert('Gagal menambahkan alamat: ' + error.message);
             }
         }
 
-        // ========== Delete Address ==========
-        window.deleteAddress = async function(index) {
+        // ========== DELETE ADDRESS (Realtime Database) ==========
+        window.deleteAddress = async function(addressId) {
+            if (!addressId) {
+                console.error("ID alamat tidak valid");
+                return;
+            }
             if (!confirm('Hapus alamat ini?')) return;
             
-            const user = auth.currentUser;
-            if (!user) return;
-            
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-            
-            if (userDoc.exists()) {
-                const addresses = userDoc.data().addresses || [];
-                const addressToRemove = addresses[index];
-                
-                if (addressToRemove) {
-                    try {
-                        await updateDoc(userDocRef, {
-                            addresses: arrayRemove(addressToRemove)
-                        });
-                        loadUserProfile();
-                        alert('✅ Alamat berhasil dihapus!');
-                    } catch (error) {
-                        alert('Gagal menghapus alamat: ' + error.message);
-                    }
-                }
+            try {
+                await deleteAddressFromRTDB(addressId);
+                await loadUserProfile();
+                alert('✅ Alamat berhasil dihapus!');
+            } catch (error) {
+                console.error("❌ ERROR delete:", error);
+                alert('Gagal menghapus alamat: ' + error.message);
             }
         }
 
