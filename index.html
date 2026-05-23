@@ -25,6 +25,8 @@
             getAuth, 
             createUserWithEmailAndPassword, 
             signInWithEmailAndPassword, 
+            signInWithPopup,
+            GoogleAuthProvider,
             signOut, 
             onAuthStateChanged,
             updateProfile,
@@ -35,6 +37,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
 
         // ========== DOM Elements ==========
         const accountIcon = document.getElementById('accountIcon');
@@ -136,7 +139,25 @@
             clearErrors();
         }
 
-        // ========== FIREBASE LOGIN (Dengan verifikasi email) ==========
+        // ========== GOOGLE LOGIN ==========
+        window.handleGoogleLogin = async function() {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                
+                // Google login sudah otomatis terverifikasi emailnya
+                alert(`✅ Selamat datang ${user.displayName || user.email}! Login dengan Google berhasil.`);
+                closeModal();
+            } catch (error) {
+                console.error(error);
+                let message = 'Login dengan Google gagal!';
+                if (error.code === 'auth/popup-blocked') message = 'Popup terblokir. Izinkan popup untuk website ini.';
+                if (error.code === 'auth/popup-closed-by-user') message = 'Popup ditutup sebelum selesai.';
+                alert(message);
+            }
+        }
+
+        // ========== EMAIL/PASSWORD LOGIN ==========
         window.handleLogin = async function() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -159,7 +180,7 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
-                // CEK APAKAH EMAIL SUDAH DIVERIFIKASI
+                // Cek apakah email sudah diverifikasi
                 if (!user.emailVerified) {
                     alert('⚠️ Email Anda belum diverifikasi!\n\nSilakan cek inbox atau folder SPAM untuk email verifikasi.\n\nSetelah verifikasi, silakan login kembali.');
                     await signOut(auth);
@@ -181,7 +202,7 @@
             }
         }
 
-        // ========== FIREBASE REGISTER (Dengan validasi password & verifikasi email) ==========
+        // ========== REGISTER ==========
         window.handleRegister = async function() {
             const name = document.getElementById('regName').value.trim();
             const email = document.getElementById('regEmail').value.trim();
@@ -193,19 +214,16 @@
             
             let isValid = true;
             
-            // Validasi Nama
             if (!name) {
                 showError('regNameError', 'Nama harus diisi');
                 isValid = false;
             }
-            
-            // Validasi Email
             if (!email) {
                 showError('regEmailError', 'Email harus diisi');
                 isValid = false;
             }
             
-            // ========== VALIDASI PASSWORD DENGAN ATURAN BARU ==========
+            // Validasi password
             if (!password || password.length < 8) {
                 showError('regPasswordError', 'Password minimal 8 karakter');
                 isValid = false;
@@ -222,9 +240,7 @@
                 showError('regPasswordError', 'Password harus mengandung angka (0-9)');
                 isValid = false;
             }
-            // ========== END VALIDASI PASSWORD ==========
             
-            // Validasi Konfirmasi Password
             if (password !== confirmPassword) {
                 showError('regConfirmError', 'Password tidak cocok');
                 isValid = false;
@@ -238,17 +254,12 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
-                // Update profil dengan nama
                 await updateProfile(user, { displayName: name });
-                
-                // ========== KIRIM EMAIL VERIFIKASI ==========
                 await sendEmailVerification(user);
-                // ========== END KIRIM EMAIL VERIFIKASI ==========
                 
                 alert(`🎉 Selamat datang, ${name}! Akun berhasil dibuat.`);
                 alert(`📧 Email verifikasi telah dikirim ke ${email}.\n\nSilakan cek inbox atau folder SPAM Anda.\n\nSetelah verifikasi, silakan login.`);
                 
-                // Logout dulu sampai email diverifikasi
                 await signOut(auth);
                 closeModal();
                 
@@ -263,7 +274,7 @@
             }
         }
 
-        // ========== FIREBASE LOGOUT ==========
+        // ========== LOGOUT ==========
         window.handleLogout = async function() {
             try {
                 await signOut(auth);
@@ -273,7 +284,7 @@
             }
         }
 
-        // ========== RESET PASSWORD (Fitur tambahan) ==========
+        // ========== RESET PASSWORD ==========
         window.resetPassword = async function() {
             const email = prompt('Masukkan email Anda untuk reset password:');
             if (email) {
@@ -293,7 +304,8 @@
             const user = auth.currentUser;
             if (user) {
                 const verifiedStatus = user.emailVerified ? '✓ Terverifikasi' : '✗ Belum diverifikasi';
-                alert(`👤 Profil Anda\n\nNama: ${user.displayName || '-'}\nEmail: ${user.email}\nStatus: ${verifiedStatus}\n\n(Fitur lengkap akan segera hadir!)`);
+                const loginMethod = user.providerData[0]?.providerId === 'google.com' ? 'Google' : 'Email/Password';
+                alert(`👤 Profil Anda\n\nNama: ${user.displayName || '-'}\nEmail: ${user.email}\nStatus: ${verifiedStatus}\nLogin via: ${loginMethod}\n\n(Fitur lengkap akan segera hadir!)`);
             }
         }
 
@@ -304,11 +316,12 @@
         // ========== MONITOR AUTH STATE ==========
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Hanya tampilkan UI jika email sudah diverifikasi
-                if (user.emailVerified) {
+                // Untuk user Google, email sudah otomatis terverifikasi
+                const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
+                
+                if (user.emailVerified || isGoogleUser) {
                     updateUIForLoggedInUser(user);
                 } else {
-                    // Jika belum verifikasi, logout otomatis
                     signOut(auth);
                     resetUIToDefault();
                 }
@@ -322,6 +335,40 @@
         style.textContent = `
             @keyframes spin {
                 to { transform: rotate(360deg); }
+            }
+            .google-btn {
+                background: white !important;
+                color: #333 !important;
+                border: 1px solid #ddd !important;
+                margin-top: 0.5rem !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 10px !important;
+            }
+            .google-btn:hover {
+                background: #f5f5f5 !important;
+                color: #b87c4e !important;
+            }
+            .divider {
+                display: flex;
+                align-items: center;
+                text-align: center;
+                margin: 1rem 0;
+                color: #999;
+                font-size: 0.8rem;
+            }
+            .divider::before,
+            .divider::after {
+                content: '';
+                flex: 1;
+                border-bottom: 1px solid #eee;
+            }
+            .divider::before {
+                margin-right: 0.5rem;
+            }
+            .divider::after {
+                margin-left: 0.5rem;
             }
         `;
         document.head.appendChild(style);
@@ -952,7 +999,6 @@
             background: #9a663e;
         }
 
-        /* Forgot password link */
         .forgot-password {
             text-align: right;
             margin-top: -0.5rem;
@@ -1223,6 +1269,13 @@
                     <a onclick="resetPassword()">Lupa password?</a>
                 </div>
                 <button class="modal-btn" id="loginBtn" onclick="handleLogin()">Login</button>
+                
+                <div class="divider">atau</div>
+                
+                <button class="modal-btn google-btn" onclick="handleGoogleLogin()">
+                    <span>🅶</span> Login dengan Google
+                </button>
+                
                 <div class="modal-footer">
                     Belum punya akun? <span onclick="showRegister()">Daftar disini</span>
                 </div>
@@ -1252,6 +1305,13 @@
                     <div class="error-message" id="regConfirmError"></div>
                 </div>
                 <button class="modal-btn" id="registerBtn" onclick="handleRegister()">Daftar</button>
+                
+                <div class="divider">atau</div>
+                
+                <button class="modal-btn google-btn" onclick="handleGoogleLogin()">
+                    <span>🅶</span> Daftar dengan Google
+                </button>
+                
                 <div class="modal-footer">
                     Sudah punya akun? <span onclick="showLogin()">Login disini</span>
                 </div>
