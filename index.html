@@ -49,6 +49,9 @@
         const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
+        // Expose auth untuk fungsi lain
+        window.firebaseAuth = auth;
+
         // ========== DOM Elements ==========
         const accountIcon = document.getElementById('accountIcon');
         
@@ -78,18 +81,26 @@
             }
         }
 
-        // ========== Toggle View (Home vs Profile) ==========
-        function showHomeView() {
-            document.getElementById('homeView').style.display = 'block';
-            document.getElementById('profileView').style.display = 'none';
+        // ========== TOGGLE VIEW ==========
+        window.showHomeView = function() {
+            const homeView = document.getElementById('homeView');
+            const profileView = document.getElementById('profileView');
+            if (homeView) homeView.style.display = 'block';
+            if (profileView) profileView.style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function showProfileView() {
-            document.getElementById('homeView').style.display = 'none';
-            document.getElementById('profileView').style.display = 'block';
+        window.showProfileView = function() {
+            const homeView = document.getElementById('homeView');
+            const profileView = document.getElementById('profileView');
+            if (homeView) homeView.style.display = 'none';
+            if (profileView) profileView.style.display = 'block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
             loadUserProfile();
+        }
+
+        window.backToHome = function() {
+            showHomeView();
         }
 
         // ========== Load User Profile Data ==========
@@ -98,29 +109,42 @@
             if (!user) return;
             
             // Informasi akun
-            document.getElementById('profileName').textContent = user.displayName || '-';
-            document.getElementById('profileEmail').textContent = user.email;
+            const profileName = document.getElementById('profileName');
+            const profileEmail = document.getElementById('profileEmail');
+            const profileMethod = document.getElementById('profileMethod');
+            const profileVerified = document.getElementById('profileVerified');
+            
+            if (profileName) profileName.textContent = user.displayName || '-';
+            if (profileEmail) profileEmail.textContent = user.email;
             
             const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
-            document.getElementById('profileMethod').textContent = isGoogleUser ? 'Google' : 'Email/Password';
-            document.getElementById('profileVerified').innerHTML = user.emailVerified ? 
-                '<span style="color: #2e7d32;">✓ Terverifikasi</span>' : 
-                '<span style="color: #d32f2f;">✗ Belum diverifikasi</span>';
-            
-            // Load alamat dari Firestore
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-            
-            let addresses = [];
-            if (userDoc.exists() && userDoc.data().addresses) {
-                addresses = userDoc.data().addresses;
+            if (profileMethod) profileMethod.textContent = isGoogleUser ? 'Google' : 'Email/Password';
+            if (profileVerified) {
+                profileVerified.innerHTML = user.emailVerified ? 
+                    '<span style="color: #2e7d32;">✓ Terverifikasi</span>' : 
+                    '<span style="color: #d32f2f;">✗ Belum diverifikasi</span>';
             }
             
-            renderAddresses(addresses);
+            // Load alamat dari Firestore
+            try {
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                let addresses = [];
+                if (userDoc.exists() && userDoc.data().addresses) {
+                    addresses = userDoc.data().addresses;
+                }
+                
+                renderAddresses(addresses);
+            } catch (error) {
+                console.error('Error loading addresses:', error);
+            }
         }
 
         function renderAddresses(addresses) {
             const addressList = document.getElementById('addressList');
+            if (!addressList) return;
+            
             if (!addresses || addresses.length === 0) {
                 addressList.innerHTML = '<div class="empty-address">Belum ada alamat. Tambahkan alamat baru di bawah.</div>';
                 return;
@@ -142,7 +166,8 @@
 
         // ========== Add Address ==========
         window.addAddress = async function() {
-            const address = document.getElementById('addressInput').value.trim();
+            const addressInput = document.getElementById('addressInput');
+            const address = addressInput ? addressInput.value.trim() : '';
             if (!address) {
                 alert('Silakan masukkan alamat terlebih dahulu.');
                 return;
@@ -158,7 +183,7 @@
                     addresses: arrayUnion(address)
                 }, { merge: true });
                 
-                document.getElementById('addressInput').value = '';
+                if (addressInput) addressInput.value = '';
                 loadUserProfile();
                 alert('✅ Alamat berhasil ditambahkan!');
             } catch (error) {
@@ -233,26 +258,34 @@
 
         // ========== Open/Close Modal ==========
         window.openModal = function() {
-            document.getElementById('authModal').classList.add('active');
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.add('active');
             showLogin();
         }
 
         window.closeModal = function() {
-            document.getElementById('authModal').classList.remove('active');
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.remove('active');
             clearErrors();
         }
 
         window.showLogin = function() {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('modalTitle').innerText = 'Login';
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const modalTitle = document.getElementById('modalTitle');
+            if (loginForm) loginForm.style.display = 'block';
+            if (registerForm) registerForm.style.display = 'none';
+            if (modalTitle) modalTitle.innerText = 'Login';
             clearErrors();
         }
 
         window.showRegister = function() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
-            document.getElementById('modalTitle').innerText = 'Daftar Akun';
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const modalTitle = document.getElementById('modalTitle');
+            if (loginForm) loginForm.style.display = 'none';
+            if (registerForm) registerForm.style.display = 'block';
+            if (modalTitle) modalTitle.innerText = 'Daftar Akun';
             clearErrors();
         }
 
@@ -274,8 +307,8 @@
 
         // ========== EMAIL LOGIN ==========
         window.handleLogin = async function() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
+            const email = document.getElementById('loginEmail')?.value.trim() || '';
+            const password = document.getElementById('loginPassword')?.value || '';
             const loginBtn = document.getElementById('loginBtn');
             
             clearErrors();
@@ -289,7 +322,7 @@
                 return;
             }
             
-            setButtonLoading(loginBtn, true);
+            if (loginBtn) setButtonLoading(loginBtn, true);
             
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -298,7 +331,7 @@
                 if (!user.emailVerified) {
                     alert('⚠️ Email Anda belum diverifikasi!\n\nSilakan cek inbox atau folder SPAM untuk email verifikasi.');
                     await signOut(auth);
-                    setButtonLoading(loginBtn, false);
+                    if (loginBtn) setButtonLoading(loginBtn, false);
                     return;
                 }
                 
@@ -313,16 +346,16 @@
                 if (error.code === 'auth/too-many-requests') message = 'Terlalu banyak percobaan. Coba lagi nanti.';
                 showError('loginEmailError', message);
             } finally {
-                setButtonLoading(loginBtn, false);
+                if (loginBtn) setButtonLoading(loginBtn, false);
             }
         }
 
         // ========== REGISTER ==========
         window.handleRegister = async function() {
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const name = document.getElementById('regName')?.value.trim() || '';
+            const email = document.getElementById('regEmail')?.value.trim() || '';
+            const password = document.getElementById('regPassword')?.value || '';
+            const confirmPassword = document.getElementById('regConfirmPassword')?.value || '';
             const registerBtn = document.getElementById('registerBtn');
             
             clearErrors();
@@ -362,7 +395,7 @@
             
             if (!isValid) return;
             
-            setButtonLoading(registerBtn, true);
+            if (registerBtn) setButtonLoading(registerBtn, true);
             
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -385,7 +418,7 @@
                 if (error.code === 'auth/invalid-email') message = 'Email tidak valid!';
                 showError('regEmailError', message);
             } finally {
-                setButtonLoading(registerBtn, false);
+                if (registerBtn) setButtonLoading(registerBtn, false);
             }
         }
 
@@ -437,11 +470,6 @@
                 showHomeView();
             }
         });
-
-        // Back to Home dari Profile
-        window.backToHome = function() {
-            showHomeView();
-        }
 
         // Add address form submit
         document.addEventListener('DOMContentLoaded', () => {
@@ -552,6 +580,7 @@
             font-weight: 500;
             transition: color 0.3s;
             white-space: nowrap;
+            cursor: pointer;
         }
 
         .nav-links a:hover {
@@ -640,14 +669,8 @@
         }
 
         @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .modal-close {
@@ -659,9 +682,7 @@
             color: #999;
         }
 
-        .modal-close:hover {
-            color: #333;
-        }
+        .modal-close:hover { color: #333; }
 
         .modal h2 {
             font-family: 'Playfair Display', serif;
@@ -715,14 +736,8 @@
             margin-top: 0.5rem;
         }
 
-        .modal-btn:hover {
-            background: #9a663e;
-        }
-
-        .modal-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
+        .modal-btn:hover { background: #9a663e; }
+        .modal-btn:disabled { background: #ccc; cursor: not-allowed; }
 
         .modal-footer {
             text-align: center;
@@ -776,9 +791,7 @@
             border: 1px solid #eee;
         }
 
-        .user-dropdown.show {
-            display: block;
-        }
+        .user-dropdown.show { display: block; }
 
         .user-dropdown a {
             display: block;
@@ -861,9 +874,7 @@
             border: 2px solid transparent;
         }
 
-        .thumbnail:hover, .thumbnail.active {
-            border-color: #b87c4e;
-        }
+        .thumbnail:hover, .thumbnail.active { border-color: #b87c4e; }
 
         .product-info {
             flex: 1;
@@ -972,9 +983,7 @@
             border: none;
         }
 
-        .btn-add:hover {
-            background: #b87c4e;
-        }
+        .btn-add:hover { background: #b87c4e; }
 
         .btn-buy {
             background: #b87c4e;
@@ -982,9 +991,7 @@
             border: none;
         }
 
-        .btn-buy:hover {
-            background: #9a663e;
-        }
+        .btn-buy:hover { background: #9a663e; }
 
         .accordion-section {
             margin-top: 1rem;
@@ -1044,9 +1051,7 @@
             padding: 1rem;
         }
 
-        .like-card:hover {
-            transform: translateY(-5px);
-        }
+        .like-card:hover { transform: translateY(-5px); }
 
         .like-image {
             background: #f5f0e8;
@@ -1156,9 +1161,7 @@
             border-radius: 20px;
         }
 
-        .remove-address:hover {
-            background: #ffebee;
-        }
+        .remove-address:hover { background: #ffebee; }
 
         .empty-address {
             color: #999;
@@ -1209,9 +1212,7 @@
             border: none;
         }
 
-        .btn-back-home:hover {
-            background: #e0e0e0;
-        }
+        .btn-back-home:hover { background: #e0e0e0; }
 
         .btn-logout {
             background: #d32f2f;
@@ -1219,9 +1220,7 @@
             border: none;
         }
 
-        .btn-logout:hover {
-            background: #b71c1c;
-        }
+        .btn-logout:hover { background: #b71c1c; }
 
         /* ========== FOOTER ========== */
         .footer {
@@ -1296,42 +1295,18 @@
         }
 
         @media (max-width: 768px) {
-            .info-row {
-                flex-direction: column;
-            }
-            .info-label {
-                width: 100%;
-                margin-bottom: 0.3rem;
-            }
-            .add-address-form {
-                flex-direction: column;
-            }
-            .button-group {
-                flex-direction: column;
-            }
+            .info-row { flex-direction: column; }
+            .info-label { width: 100%; margin-bottom: 0.3rem; }
+            .add-address-form { flex-direction: column; }
+            .button-group { flex-direction: column; }
         }
 
         @media (max-width: 480px) {
-            .main-image {
-                height: 300px;
-                font-size: 5rem;
-            }
-            .thumbnail {
-                width: 55px;
-                height: 55px;
-                font-size: 1.3rem;
-            }
-            .product-title {
-                font-size: 1.4rem;
-            }
-            .product-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.8rem;
-            }
-            .like-image {
-                height: 120px;
-                font-size: 2.5rem;
-            }
+            .main-image { height: 300px; font-size: 5rem; }
+            .thumbnail { width: 55px; height: 55px; font-size: 1.3rem; }
+            .product-title { font-size: 1.4rem; }
+            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+            .like-image { height: 120px; font-size: 2.5rem; }
         }
     </style>
 </head>
@@ -1632,7 +1607,7 @@
         }
 
         // ========== PRODUCT FUNCTIONS ==========
-        function changeImage(emoji) {
+        window.changeImage = function(emoji) {
             document.getElementById('mainImage').innerHTML = emoji;
             document.querySelectorAll('.thumbnail').forEach(thumb => {
                 thumb.classList.remove('active');
@@ -1643,7 +1618,7 @@
         let currentPrice = 120000;
         let currentSize = '90 gr';
 
-        function selectSize(btn, size, price) {
+        window.selectSize = function(btn, size, price) {
             document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentSize = size;
@@ -1651,27 +1626,15 @@
             document.getElementById('priceDisplay').innerHTML = `Rp ${price.toLocaleString('id-ID')},00`;
         }
 
-        function addToCart() {
-            const user = firebaseAuth?.currentUser;
-            if (!user) {
-                alert('Silakan login terlebih dahulu untuk menambahkan ke keranjang 🛒');
-                openModal();
-                return;
-            }
+        window.addToCart = function() {
             alert(`🛒 ${currentSize} Arveluna Candle ditambahkan ke keranjang!\nTotal: Rp ${currentPrice.toLocaleString('id-ID')},00`);
         }
 
-        function buyNow() {
-            const user = firebaseAuth?.currentUser;
-            if (!user) {
-                alert('Silakan login terlebih dahulu untuk melanjutkan pembayaran 💳');
-                openModal();
-                return;
-            }
+        window.buyNow = function() {
             alert(`💳 Lanjutkan pembayaran untuk ${currentSize} Arveluna Candle\nTotal: Rp ${currentPrice.toLocaleString('id-ID')},00`);
         }
 
-        function toggleAccordion(header) {
+        window.toggleAccordion = function(header) {
             const content = header.nextElementSibling;
             const isActive = content.classList.contains('active');
             
@@ -1686,24 +1649,8 @@
 
         // Cart icon
         document.querySelector('.nav-icons span:last-child').addEventListener('click', function() {
-            const user = firebaseAuth?.currentUser;
-            if (!user) {
-                alert('Silakan login terlebih dahulu untuk melihat keranjang 🛒');
-                openModal();
-                return;
-            }
             alert('Keranjang belanja Anda masih kosong 🛒');
         });
-
-        // Expose functions ke global
-        window.showHomeView = showHomeView;
-        window.showProfileView = showProfileView;
-        window.backToHome = backToHome;
-        window.changeImage = changeImage;
-        window.selectSize = selectSize;
-        window.addToCart = addToCart;
-        window.buyNow = buyNow;
-        window.toggleAccordion = toggleAccordion;
     </script>
 </body>
 </html>
