@@ -33,10 +33,20 @@
             sendEmailVerification,
             sendPasswordResetEmail
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            updateDoc, 
+            arrayUnion,
+            arrayRemove
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
         // ========== DOM Elements ==========
@@ -68,7 +78,118 @@
             }
         }
 
-        // Update UI untuk user yang login
+        // ========== Toggle View (Home vs Profile) ==========
+        function showHomeView() {
+            document.getElementById('homeView').style.display = 'block';
+            document.getElementById('profileView').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showProfileView() {
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('profileView').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            loadUserProfile();
+        }
+
+        // ========== Load User Profile Data ==========
+        async function loadUserProfile() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            // Informasi akun
+            document.getElementById('profileName').textContent = user.displayName || '-';
+            document.getElementById('profileEmail').textContent = user.email;
+            
+            const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
+            document.getElementById('profileMethod').textContent = isGoogleUser ? 'Google' : 'Email/Password';
+            document.getElementById('profileVerified').innerHTML = user.emailVerified ? 
+                '<span style="color: #2e7d32;">✓ Terverifikasi</span>' : 
+                '<span style="color: #d32f2f;">✗ Belum diverifikasi</span>';
+            
+            // Load alamat dari Firestore
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userDocRef);
+            
+            let addresses = [];
+            if (userDoc.exists() && userDoc.data().addresses) {
+                addresses = userDoc.data().addresses;
+            }
+            
+            renderAddresses(addresses);
+        }
+
+        function renderAddresses(addresses) {
+            const addressList = document.getElementById('addressList');
+            if (!addresses || addresses.length === 0) {
+                addressList.innerHTML = '<div class="empty-address">Belum ada alamat. Tambahkan alamat baru di bawah.</div>';
+                return;
+            }
+            
+            addressList.innerHTML = addresses.map((addr, index) => `
+                <div class="address-card">
+                    <div class="address-text">📍 ${escapeHtml(addr)}</div>
+                    <button class="remove-address" data-address="${escapeHtml(addr)}" onclick="removeAddress(this)">Hapus</button>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========== Add Address ==========
+        window.addAddress = async function() {
+            const address = document.getElementById('addressInput').value.trim();
+            if (!address) {
+                alert('Silakan masukkan alamat terlebih dahulu.');
+                return;
+            }
+            
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            const userDocRef = doc(db, 'users', user.uid);
+            
+            try {
+                await setDoc(userDocRef, {
+                    addresses: arrayUnion(address)
+                }, { merge: true });
+                
+                document.getElementById('addressInput').value = '';
+                loadUserProfile();
+                alert('✅ Alamat berhasil ditambahkan!');
+            } catch (error) {
+                console.error(error);
+                alert('Gagal menambahkan alamat: ' + error.message);
+            }
+        }
+
+        // ========== Remove Address ==========
+        window.removeAddress = async function(btn) {
+            const address = btn.getAttribute('data-address');
+            if (!confirm(`Hapus alamat: "${address}"?`)) return;
+            
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            const userDocRef = doc(db, 'users', user.uid);
+            
+            try {
+                await updateDoc(userDocRef, {
+                    addresses: arrayRemove(address)
+                });
+                loadUserProfile();
+                alert('✅ Alamat berhasil dihapus!');
+            } catch (error) {
+                console.error(error);
+                alert('Gagal menghapus alamat: ' + error.message);
+            }
+        }
+
+        // ========== Update UI untuk user yang login ==========
         function updateUIForLoggedInUser(user) {
             const displayName = user.displayName || user.email.split('@')[0];
             
@@ -79,7 +200,7 @@
             dropdown.className = 'user-dropdown';
             dropdown.innerHTML = `
                 <div class="user-name">👤 ${displayName}</div>
-                <a href="#" onclick="viewProfile(); return false;">📋 Profil Saya</a>
+                <a href="#" onclick="showProfileView(); return false;">📋 Profil Saya</a>
                 <a href="#" onclick="viewOrders(); return false;">📦 Pesanan Saya</a>
                 <hr>
                 <a href="#" onclick="handleLogout(); return false;">🚪 Logout</a>
@@ -110,6 +231,7 @@
             if (dropdown) dropdown.remove();
         }
 
+        // ========== Open/Close Modal ==========
         window.openModal = function() {
             document.getElementById('authModal').classList.add('active');
             showLogin();
@@ -134,12 +256,14 @@
             clearErrors();
         }
 
+        // ========== GOOGLE LOGIN ==========
         window.handleGoogleLogin = async function() {
             try {
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
                 alert(`✅ Selamat datang ${user.displayName || user.email}! Login dengan Google berhasil.`);
                 closeModal();
+                showHomeView();
             } catch (error) {
                 let message = 'Login dengan Google gagal!';
                 if (error.code === 'auth/popup-blocked') message = 'Popup terblokir. Izinkan popup untuk website ini.';
@@ -148,6 +272,7 @@
             }
         }
 
+        // ========== EMAIL LOGIN ==========
         window.handleLogin = async function() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -179,6 +304,7 @@
                 
                 alert(`✅ Selamat datang kembali, ${user.displayName || user.email.split('@')[0]}!`);
                 closeModal();
+                showHomeView();
             } catch (error) {
                 let message = 'Login gagal!';
                 if (error.code === 'auth/invalid-credential') message = 'Email atau password salah!';
@@ -191,6 +317,7 @@
             }
         }
 
+        // ========== REGISTER ==========
         window.handleRegister = async function() {
             const name = document.getElementById('regName').value.trim();
             const email = document.getElementById('regEmail').value.trim();
@@ -249,6 +376,7 @@
                 
                 await signOut(auth);
                 closeModal();
+                showHomeView();
                 
             } catch (error) {
                 let message = 'Pendaftaran gagal!';
@@ -261,15 +389,18 @@
             }
         }
 
+        // ========== LOGOUT ==========
         window.handleLogout = async function() {
             try {
                 await signOut(auth);
                 alert('✅ Anda telah logout');
+                showHomeView();
             } catch (error) {
                 alert('Logout gagal!');
             }
         }
 
+        // ========== RESET PASSWORD ==========
         window.resetPassword = async function() {
             const email = prompt('Masukkan email Anda untuk reset password:');
             if (email) {
@@ -284,33 +415,46 @@
             }
         }
 
-        window.viewProfile = function() {
-            const user = auth.currentUser;
-            if (user) {
-                const verifiedStatus = user.emailVerified ? '✓ Terverifikasi' : '✗ Belum diverifikasi';
-                const loginMethod = user.providerData[0]?.providerId === 'google.com' ? 'Google' : 'Email/Password';
-                alert(`👤 Profil Anda\n\nNama: ${user.displayName || '-'}\nEmail: ${user.email}\nStatus: ${verifiedStatus}\nLogin via: ${loginMethod}`);
-            }
-        }
-
+        // ========== ORDERS ==========
         window.viewOrders = function() {
             alert('📦 Fitur riwayat pesanan akan segera hadir!');
         }
 
-        onAuthStateChanged(auth, (user) => {
+        // ========== MONITOR AUTH STATE ==========
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
                 if (user.emailVerified || isGoogleUser) {
                     updateUIForLoggedInUser(user);
+                    showHomeView();
                 } else {
-                    signOut(auth);
+                    await signOut(auth);
                     resetUIToDefault();
+                    showHomeView();
                 }
             } else {
                 resetUIToDefault();
+                showHomeView();
             }
         });
 
+        // Back to Home dari Profile
+        window.backToHome = function() {
+            showHomeView();
+        }
+
+        // Add address form submit
+        document.addEventListener('DOMContentLoaded', () => {
+            const addAddressForm = document.getElementById('addAddressForm');
+            if (addAddressForm) {
+                addAddressForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    window.addAddress();
+                });
+            }
+        });
+
+        // Tambahkan style untuk spinner
         const style = document.createElement('style');
         style.textContent = `
             @keyframes spin { to { transform: rotate(360deg); } }
@@ -382,9 +526,9 @@
             letter-spacing: 1px;
             text-decoration: none;
             color: #1a1a1a;
+            cursor: pointer;
         }
 
-        /* Hamburger Menu Button */
         .menu-toggle {
             display: none;
             background: none;
@@ -392,11 +536,6 @@
             font-size: 1.8rem;
             cursor: pointer;
             color: #1a1a1a;
-            transition: color 0.3s;
-        }
-
-        .menu-toggle:hover {
-            color: #b87c4e;
         }
 
         .nav-links {
@@ -435,17 +574,14 @@
             color: #b87c4e;
         }
 
-        /* ========== RESPONSIVE NAVIGASI UNTUK HP ========== */
         @media (max-width: 768px) {
             .navbar {
                 padding: 0.8rem 5%;
                 flex-wrap: wrap;
             }
-            
             .menu-toggle {
                 display: block;
             }
-            
             .nav-links {
                 display: none;
                 width: 100%;
@@ -455,23 +591,19 @@
                 order: 3;
                 margin-top: 0.5rem;
             }
-            
             .nav-links.show {
                 display: flex;
             }
-            
             .nav-links li {
                 width: 100%;
                 text-align: center;
             }
-            
             .nav-links a {
                 display: block;
                 padding: 0.8rem 0;
                 font-size: 1rem;
                 white-space: normal;
             }
-            
             .nav-icons {
                 gap: 1rem;
             }
@@ -525,7 +657,6 @@
             font-size: 1.8rem;
             cursor: pointer;
             color: #999;
-            transition: color 0.3s;
         }
 
         .modal-close:hover {
@@ -537,7 +668,6 @@
             font-size: 1.6rem;
             margin-bottom: 1.5rem;
             text-align: center;
-            color: #1a1a1a;
         }
 
         .input-group {
@@ -559,13 +689,11 @@
             border-radius: 12px;
             font-family: 'Inter', sans-serif;
             font-size: 0.9rem;
-            transition: all 0.3s;
         }
 
         .input-group input:focus {
             outline: none;
             border-color: #b87c4e;
-            box-shadow: 0 0 0 2px rgba(184, 124, 78, 0.1);
         }
 
         .password-hint {
@@ -585,7 +713,6 @@
             font-weight: 600;
             font-size: 1rem;
             margin-top: 0.5rem;
-            transition: background 0.3s;
         }
 
         .modal-btn:hover {
@@ -610,10 +737,6 @@
             font-weight: 600;
         }
 
-        .modal-footer span:hover {
-            text-decoration: underline;
-        }
-
         .error-message {
             color: #d32f2f;
             font-size: 0.7rem;
@@ -632,10 +755,6 @@
             color: #b87c4e;
             text-decoration: none;
             cursor: pointer;
-        }
-        
-        .forgot-password a:hover {
-            text-decoration: underline;
         }
 
         /* User dropdown menu */
@@ -690,7 +809,7 @@
             border-bottom: 1px solid #eee;
         }
 
-        /* ========== BREADCRUMB ========== */
+        /* ========== HOME VIEW ========== */
         .breadcrumb {
             margin-top: 80px;
             padding: 1rem 5%;
@@ -700,7 +819,6 @@
             white-space: nowrap;
         }
 
-        /* ========== PRODUCT SECTION ========== */
         .product-section {
             padding: 1.5rem 5%;
             display: flex;
@@ -741,7 +859,6 @@
             font-size: 1.8rem;
             cursor: pointer;
             border: 2px solid transparent;
-            transition: all 0.3s;
         }
 
         .thumbnail:hover, .thumbnail.active {
@@ -824,7 +941,6 @@
             border-radius: 30px;
             cursor: pointer;
             font-size: 0.85rem;
-            transition: all 0.3s;
         }
 
         .size-btn:hover, .size-btn.active {
@@ -848,7 +964,6 @@
             font-weight: 600;
             font-size: 0.85rem;
             text-align: center;
-            transition: all 0.3s;
         }
 
         .btn-add {
@@ -904,7 +1019,6 @@
             padding-bottom: 1rem;
         }
 
-        /* ========== YOU MAY ALSO LIKE ========== */
         .also-like {
             padding: 2rem 5%;
             background: #faf7f2;
@@ -928,6 +1042,10 @@
             background: white;
             border-radius: 16px;
             padding: 1rem;
+        }
+
+        .like-card:hover {
+            transform: translateY(-5px);
         }
 
         .like-image {
@@ -957,6 +1075,152 @@
             color: #b87c4e;
             font-weight: 700;
             font-size: 0.8rem;
+        }
+
+        /* ========== PROFILE VIEW ========== */
+        .profile-container {
+            max-width: 800px;
+            margin: 100px auto 2rem;
+            padding: 0 5%;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #b87c4e;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-label {
+            width: 120px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #333;
+        }
+
+        .address-list {
+            margin-bottom: 1rem;
+        }
+
+        .address-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .address-text {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .remove-address {
+            background: none;
+            border: none;
+            color: #d32f2f;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+        }
+
+        .remove-address:hover {
+            background: #ffebee;
+        }
+
+        .empty-address {
+            color: #999;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .add-address-form {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .add-address-form input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .add-address-form input:focus {
+            outline: none;
+            border-color: #b87c4e;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-back-home, .btn-logout {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .btn-back-home {
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+        }
+
+        .btn-back-home:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-logout {
+            background: #d32f2f;
+            color: white;
+            border: none;
+        }
+
+        .btn-logout:hover {
+            background: #b71c1c;
         }
 
         /* ========== FOOTER ========== */
@@ -1031,39 +1295,42 @@
             font-size: 1.2rem;
         }
 
-        /* HP kecil */
+        @media (max-width: 768px) {
+            .info-row {
+                flex-direction: column;
+            }
+            .info-label {
+                width: 100%;
+                margin-bottom: 0.3rem;
+            }
+            .add-address-form {
+                flex-direction: column;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+        }
+
         @media (max-width: 480px) {
             .main-image {
                 height: 300px;
                 font-size: 5rem;
             }
-            
             .thumbnail {
                 width: 55px;
                 height: 55px;
                 font-size: 1.3rem;
             }
-            
             .product-title {
                 font-size: 1.4rem;
             }
-            
-            .price {
-                font-size: 1.3rem;
-            }
-            
             .product-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 0.8rem;
             }
-            
             .like-image {
                 height: 120px;
                 font-size: 2.5rem;
-            }
-            
-            .modal-content {
-                padding: 1.2rem;
             }
         }
     </style>
@@ -1072,14 +1339,14 @@
 
     <!-- ========== NAVIGASI ========== -->
     <nav class="navbar" id="navbar">
-        <a href="#" class="logo">ARVELUNA</a>
+        <a href="#" class="logo" onclick="showHomeView(); return false;">ARVELUNA</a>
         <button class="menu-toggle" id="menuToggle">☰</button>
         <ul class="nav-links" id="navLinks">
-            <li><a href="#">Home</a></li>
-            <li><a href="#">Aromatic Candles</a></li>
-            <li><a href="#">Essential Oil</a></li>
-            <li><a href="#">Diffuser</a></li>
-            <li><a href="#">Gift Set</a></li>
+            <li><a href="#" onclick="showHomeView(); return false;">Home</a></li>
+            <li><a href="#" onclick="showHomeView(); return false;">Aromatic Candles</a></li>
+            <li><a href="#" onclick="showHomeView(); return false;">Essential Oil</a></li>
+            <li><a href="#" onclick="showHomeView(); return false;">Diffuser</a></li>
+            <li><a href="#" onclick="showHomeView(); return false;">Gift Set</a></li>
         </ul>
         <div class="nav-icons">
             <span>🔍</span>
@@ -1088,132 +1355,175 @@
         </div>
     </nav>
 
-    <!-- ========== BREADCRUMB ========== -->
-    <div class="breadcrumb">
-        <a href="#">Home</a> / <a href="#">Aromatic Candles</a> / <span style="color:#b87c4e;">Buai Aromatic Jar Candles by Arveluna</span>
+    <!-- ========== HOME VIEW ========== -->
+    <div id="homeView">
+        <div class="breadcrumb">
+            <a href="#" onclick="showHomeView(); return false;">Home</a> / <a href="#" onclick="showHomeView(); return false;">Aromatic Candles</a> / <span style="color:#b87c4e;">Buai Aromatic Jar Candles by Arveluna</span>
+        </div>
+
+        <section class="product-section">
+            <div class="product-gallery">
+                <div class="main-image" id="mainImage">🕯️✨🌸</div>
+                <div class="thumbnail-list">
+                    <div class="thumbnail active" onclick="changeImage('🕯️✨🌸')">🕯️✨🌸</div>
+                    <div class="thumbnail" onclick="changeImage('🕯️🌙✨')">🕯️🌙✨</div>
+                    <div class="thumbnail" onclick="changeImage('🕯️🌿✨')">🕯️🌿✨</div>
+                    <div class="thumbnail" onclick="changeImage('🕯️🍊✨')">🕯️🍊✨</div>
+                </div>
+            </div>
+
+            <div class="product-info">
+                <div class="vendor">ARVELUNA</div>
+                <h1 class="product-title">Buai Aromatic Jar Candles</h1>
+                <div class="product-subtitle">by Arveluna Candle</div>
+                <div class="price" id="priceDisplay">Rp 120.000,00</div>
+
+                <div class="badges">
+                    <span class="badge green">✓ Halal</span>
+                    <span class="badge green">✓ No Animal Testing</span>
+                    <span class="badge green">✓ Natural Ingredients</span>
+                </div>
+
+                <div class="size-section">
+                    <div class="size-label">Size:</div>
+                    <div class="size-options">
+                        <button class="size-btn active" onclick="selectSize(this, '90 gr', 120000)">90 gr</button>
+                        <button class="size-btn" onclick="selectSize(this, '180 gr', 195000)">180 gr</button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-add" onclick="addToCart()">Add To Cart</button>
+                    <button class="btn-buy" onclick="buyNow()">Buy It Now</button>
+                </div>
+
+                <div class="accordion-section">
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">Description <span>▼</span></div>
+                        <div class="accordion-content">
+                            <p>Nikmati kehangatan dan kenyamanan dengan Buai Aromatic Jar Candle. Lilin dari campuran soy wax dan beeswax alami, diperkaya dengan minyak atsiri cinnamon, vanila, dan lavender.</p>
+                            <p style="margin-top: 0.5rem;"><strong>Key Emotion:</strong> Calming, Warm, Sweet, Caring</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">Cara Pakai <span>▼</span></div>
+                        <div class="accordion-content">
+                            <p>Nyalakan lilin dengan korek api atau pemantik api. Letakkan di permukaan yang stabil dan tahan panas.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">Ingredients <span>▼</span></div>
+                        <div class="accordion-content">
+                            <p>Soy wax, Beeswax, Essential Oil (Cinnamon, Vanilla, Lavender), Dried Flowers.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">Benefit <span>▼</span></div>
+                        <div class="accordion-content">
+                            <p>✓ Menenangkan pikiran<br>✓ Meningkatkan mood<br>✓ Menghilangkan stres</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">Best For <span>▼</span></div>
+                        <div class="accordion-content">
+                            <p>✓ Relaksasi setelah bekerja<br>✓ Meditasi & yoga<br>✓ Hadiah untuk orang tersayang</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="also-like">
+            <h2>You May Also Like</h2>
+            <div class="product-grid">
+                <div class="like-card" onclick="alert('Rayu Aromatic Jar Candles')">
+                    <div class="like-image">🕯️💛</div>
+                    <div class="like-category">CANDLE</div>
+                    <div class="like-title">Rayu Aromatic Jar Candles</div>
+                    <div class="like-price">Rp 120.000</div>
+                </div>
+                <div class="like-card" onclick="alert('1963 Aromatic Jar Candles')">
+                    <div class="like-image">🕯️🤎</div>
+                    <div class="like-category">CANDLE</div>
+                    <div class="like-title">1963 Aromatic Jar Candles</div>
+                    <div class="like-price">Rp 120.000</div>
+                </div>
+                <div class="like-card" onclick="alert('Buai Eau de Parfum')">
+                    <div class="like-image">🌸✨</div>
+                    <div class="like-category">EAU DE PARFUM</div>
+                    <div class="like-title">Buai Eau de Parfum</div>
+                    <div class="like-price">Rp 105.000</div>
+                </div>
+                <div class="like-card" onclick="alert('Buai Signature Essential Oil')">
+                    <div class="like-image">🌿✨</div>
+                    <div class="like-category">ESSENTIAL OIL</div>
+                    <div class="like-title">Buai Signature Essential Oil</div>
+                    <div class="like-price">Rp 98.000</div>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- ========== PRODUCT SECTION ========== -->
-    <section class="product-section">
-        <div class="product-gallery">
-            <div class="main-image" id="mainImage">🕯️✨🌸</div>
-            <div class="thumbnail-list">
-                <div class="thumbnail active" onclick="changeImage('🕯️✨🌸')">🕯️✨🌸</div>
-                <div class="thumbnail" onclick="changeImage('🕯️🌙✨')">🕯️🌙✨</div>
-                <div class="thumbnail" onclick="changeImage('🕯️🌿✨')">🕯️🌿✨</div>
-                <div class="thumbnail" onclick="changeImage('🕯️🍊✨')">🕯️🍊✨</div>
+    <!-- ========== PROFILE VIEW ========== -->
+    <div id="profileView" style="display: none;">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h1>Profil Saya</h1>
+                <p>Kelola informasi akun dan alamat Anda</p>
+            </div>
+
+            <div class="card">
+                <h2>Informasi Akun</h2>
+                <div class="info-row">
+                    <div class="info-label">Nama</div>
+                    <div class="info-value" id="profileName">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email</div>
+                    <div class="info-value" id="profileEmail">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Metode Login</div>
+                    <div class="info-value" id="profileMethod">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Verifikasi Email</div>
+                    <div class="info-value" id="profileVerified">-</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📦 Daftar Alamat</h2>
+                <div class="address-list" id="addressList">
+                    <div class="empty-address">Memuat alamat...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>➕ Tambah Alamat Baru</h2>
+                <form id="addAddressForm" class="add-address-form">
+                    <input type="text" id="addressInput" placeholder="Contoh: Jl. Raya Kebayoran Lama No. 123, Jakarta Selatan">
+                    <button type="submit" class="btn-add">Tambah Alamat</button>
+                </form>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-back-home" onclick="backToHome()">← Kembali ke Toko</button>
+                <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
             </div>
         </div>
-
-        <div class="product-info">
-            <div class="vendor">ARVELUNA</div>
-            <h1 class="product-title">Buai Aromatic Jar Candles</h1>
-            <div class="product-subtitle">by Arveluna Candle</div>
-            <div class="price" id="priceDisplay">Rp 120.000,00</div>
-
-            <div class="badges">
-                <span class="badge green">✓ Halal</span>
-                <span class="badge green">✓ No Animal Testing</span>
-                <span class="badge green">✓ Natural Ingredients</span>
-            </div>
-
-            <div class="size-section">
-                <div class="size-label">Size:</div>
-                <div class="size-options">
-                    <button class="size-btn active" onclick="selectSize(this, '90 gr', 120000)">90 gr</button>
-                    <button class="size-btn" onclick="selectSize(this, '180 gr', 195000)">180 gr</button>
-                </div>
-            </div>
-
-            <div class="action-buttons">
-                <button class="btn-add" onclick="addToCart()">Add To Cart</button>
-                <button class="btn-buy" onclick="buyNow()">Buy It Now</button>
-            </div>
-
-            <div class="accordion-section">
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">Description <span>▼</span></div>
-                    <div class="accordion-content">
-                        <p>Nikmati kehangatan dan kenyamanan dengan Buai Aromatic Jar Candle. Lilin dari campuran soy wax dan beeswax alami, diperkaya dengan minyak atsiri cinnamon, vanila, dan lavender, serta dekorasi bunga kering dari kebun Rumah Arveluna.</p>
-                        <p style="margin-top: 0.5rem;"><strong>Key Emotion:</strong> Calming, Warm, Sweet, Caring</p>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">Cara Pakai <span>▼</span></div>
-                    <div class="accordion-content">
-                        <p>Nyalakan lilin dengan korek api atau pemantik api. Letakkan di permukaan yang stabil dan tahan panas. Jangan biarkan lilin menyala tanpa pengawasan.</p>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">Ingredients <span>▼</span></div>
-                    <div class="accordion-content">
-                        <p>Soy wax, Beeswax, Essential Oil (Cinnamon, Vanilla, Lavender), Dried Flowers from Arveluna Garden.</p>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">Benefit <span>▼</span></div>
-                    <div class="accordion-content">
-                        <p>✓ Menenangkan pikiran<br>✓ Meningkatkan mood<br>✓ Menghilangkan stres<br>✓ Membantu tidur lebih nyenyak</p>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">Best For <span>▼</span></div>
-                    <div class="accordion-content">
-                        <p>✓ Relaksasi setelah bekerja<br>✓ Meditasi & yoga<br>✓ Hadiah untuk orang tersayang<br>✓ Menciptakan suasana nyaman di rumah</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== YOU MAY ALSO LIKE ========== -->
-    <section class="also-like">
-        <h2>You May Also Like</h2>
-        <div class="product-grid">
-            <div class="like-card" onclick="alert('Rayu Aromatic Jar Candles')">
-                <div class="like-image">🕯️💛</div>
-                <div class="like-category">CANDLE</div>
-                <div class="like-title">Rayu Aromatic Jar Candles</div>
-                <div class="like-price">Rp 120.000</div>
-            </div>
-            <div class="like-card" onclick="alert('1963 Aromatic Jar Candles')">
-                <div class="like-image">🕯️🤎</div>
-                <div class="like-category">CANDLE</div>
-                <div class="like-title">1963 Aromatic Jar Candles</div>
-                <div class="like-price">Rp 120.000</div>
-            </div>
-            <div class="like-card" onclick="alert('Buai Eau de Parfum')">
-                <div class="like-image">🌸✨</div>
-                <div class="like-category">EAU DE PARFUM</div>
-                <div class="like-title">Buai Eau de Parfum</div>
-                <div class="like-price">Rp 105.000</div>
-            </div>
-            <div class="like-card" onclick="alert('Buai Signature Essential Oil')">
-                <div class="like-image">🌿✨</div>
-                <div class="like-category">ESSENTIAL OIL</div>
-                <div class="like-title">Buai Signature Essential Oil</div>
-                <div class="like-price">Rp 98.000</div>
-            </div>
-            <div class="like-card" onclick="alert('Body Lotion Buai')">
-                <div class="like-image">🧴✨</div>
-                <div class="like-category">BODY LOTION</div>
-                <div class="like-title">Body Lotion Arveluna BUAI</div>
-                <div class="like-price">Rp 85.000</div>
-            </div>
-        </div>
-    </section>
+    </div>
 
     <!-- ========== FOOTER ========== -->
     <footer class="footer">
         <div class="footer-grid">
             <div class="footer-col">
                 <h4>ARVELUNA</h4>
-                <p>Lilin aromaterapi dari bahan alami untuk menghadirkan ketenangan di setiap ruangan Anda.</p>
+                <p>Lilin aromaterapi dari bahan alami untuk menghadirkan ketenangan.</p>
                 <div class="social-icons">
                     <div class="social-icon" onclick="alert('Instagram: @arveluna.candle')">📷</div>
                     <div class="social-icon" onclick="alert('Facebook: Arveluna Candle')">📘</div>
                     <div class="social-icon" onclick="alert('TikTok: @arveluna')">🎵</div>
-                    <div class="social-icon" onclick="alert('Shopee: Arveluna Official')">🛍️</div>
                 </div>
             </div>
             <div class="footer-col">
@@ -1222,23 +1532,17 @@
             </div>
             <div class="footer-col">
                 <h4>Flagship Store</h4>
-                <p>Rumah Arveluna Indonesia<br>Jl. Raya Kebayoran Lama No. 123, Jakarta Selatan</p>
-                <p><strong>Online Store:</strong><br>Tokopedia: ARVELUNA SHOP<br>Shopee: Arveluna Official Store</p>
-            </div>
-            <div class="footer-col">
-                <h4>WhatsApp</h4>
-                <p>📱 +62 812 3456 7890 (Jakarta)<br>📱 +62 822 3336 6664 (Jawa Tengah)</p>
+                <p>Jl. Raya Kebayoran Lama No. 123, Jakarta Selatan</p>
             </div>
         </div>
         <div class="copyright">
-            <p>&copy; 2024 Arveluna Candle. All rights reserved. | Lilin Aromaterapi untuk ketenangan Anda</p>
+            <p>&copy; 2024 Arveluna Candle. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- Chat Button -->
     <div class="chat-btn" onclick="alert('Halo! Ada yang bisa kami bantu? 💬')">💬</div>
 
-    <!-- ========== MODAL LOGIN/DAFTAR ========== -->
+    <!-- ========== MODAL LOGIN ========== -->
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="modal-close" onclick="closeModal()">&times;</span>
@@ -1320,9 +1624,8 @@
                 navLinksHp.classList.toggle('show');
             });
             
-            // Tutup menu saat klik di luar navbar
             document.addEventListener('click', function(e) {
-                if (!navbar.contains(e.target)) {
+                if (navbar && !navbar.contains(e.target)) {
                     navLinksHp.classList.remove('show');
                 }
             });
@@ -1349,10 +1652,22 @@
         }
 
         function addToCart() {
+            const user = firebaseAuth?.currentUser;
+            if (!user) {
+                alert('Silakan login terlebih dahulu untuk menambahkan ke keranjang 🛒');
+                openModal();
+                return;
+            }
             alert(`🛒 ${currentSize} Arveluna Candle ditambahkan ke keranjang!\nTotal: Rp ${currentPrice.toLocaleString('id-ID')},00`);
         }
 
         function buyNow() {
+            const user = firebaseAuth?.currentUser;
+            if (!user) {
+                alert('Silakan login terlebih dahulu untuk melanjutkan pembayaran 💳');
+                openModal();
+                return;
+            }
             alert(`💳 Lanjutkan pembayaran untuk ${currentSize} Arveluna Candle\nTotal: Rp ${currentPrice.toLocaleString('id-ID')},00`);
         }
 
@@ -1371,8 +1686,24 @@
 
         // Cart icon
         document.querySelector('.nav-icons span:last-child').addEventListener('click', function() {
+            const user = firebaseAuth?.currentUser;
+            if (!user) {
+                alert('Silakan login terlebih dahulu untuk melihat keranjang 🛒');
+                openModal();
+                return;
+            }
             alert('Keranjang belanja Anda masih kosong 🛒');
         });
+
+        // Expose functions ke global
+        window.showHomeView = showHomeView;
+        window.showProfileView = showProfileView;
+        window.backToHome = backToHome;
+        window.changeImage = changeImage;
+        window.selectSize = selectSize;
+        window.addToCart = addToCart;
+        window.buyNow = buyNow;
+        window.toggleAccordion = toggleAccordion;
     </script>
 </body>
 </html>
