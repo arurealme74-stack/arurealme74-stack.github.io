@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Arveluna Candle - Lilin Aromaterapi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Firebase SDK -->
     <script type="module">
-        // Firebase Configuration - DENGAN DATABASE URL YANG BENAR
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBIpgXvw1q_QQkt4M1zejgRhT0Zg7nUihw",
             authDomain: "arveluna-candle.firebaseapp.com",
-            databaseURL: "https://arveluna-candle-default-rtdb.asia-southeast1.firebasedatabase.app", // ← GANTI DENGAN URL ANDA
+            databaseURL: "https://arveluna-candle-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "arveluna-candle",
             storageBucket: "arveluna-candle.firebasestorage.app",
             messagingSenderId: "374147377077",
@@ -20,7 +20,6 @@
             measurementId: "G-RG34PDCGG0"
         };
 
-        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
             getAuth, 
@@ -34,32 +33,27 @@
             sendEmailVerification,
             sendPasswordResetEmail
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        
-        // IMPORT REALTIME DATABASE
         import { 
             getDatabase, 
             ref, 
             set, 
             get, 
             push, 
-            remove,
-            onValue
+            remove
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
 
-        console.log("✅ Firebase initialized dengan database:", firebaseConfig.databaseURL);
-
         window.firebaseAuth = auth;
 
-        // ========== DOM Elements ==========
+        // DOM Elements
         const accountIcon = document.getElementById('accountIcon');
+        const cartIcon = document.getElementById('cartIcon');
         
-        // ========== Helper Functions ==========
+        // Helper Functions
         function showError(elementId, message) {
             const errorEl = document.getElementById(elementId);
             if (errorEl) {
@@ -85,29 +79,32 @@
             }
         }
 
-        // ========== TOGGLE VIEW ==========
+        // Toggle Views
         window.showHomeView = function() {
-            const homeView = document.getElementById('homeView');
-            const profileView = document.getElementById('profileView');
-            if (homeView) homeView.style.display = 'block';
-            if (profileView) profileView.style.display = 'none';
+            document.getElementById('homeView').style.display = 'block';
+            document.getElementById('profileView').style.display = 'none';
+            document.getElementById('cartView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         window.showProfileView = function() {
-            const homeView = document.getElementById('homeView');
-            const profileView = document.getElementById('profileView');
-            if (homeView) homeView.style.display = 'none';
-            if (profileView) profileView.style.display = 'block';
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('profileView').style.display = 'block';
+            document.getElementById('cartView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
             loadUserProfile();
         }
 
-        window.backToHome = function() {
-            showHomeView();
+        window.showCartView = function() {
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('profileView').style.display = 'none';
+            document.getElementById('cartView').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ========== Format Alamat ke Object ==========
+        window.backToHome = function() { showHomeView(); }
+
+        // Format Alamat
         function getAddressFromForm() {
             return {
                 label: document.getElementById('addressLabel')?.value || 'Rumah',
@@ -124,59 +121,38 @@
             };
         }
 
-        // ========== FUNGSI REALTIME DATABASE ==========
-        
+        // Database Functions
         async function saveAddressToRTDB(address) {
             const user = auth.currentUser;
             if (!user) throw new Error('User tidak login');
-            
             const addressesRef = ref(db, `users/${user.uid}/addresses`);
             const newAddressRef = push(addressesRef);
             await set(newAddressRef, address);
-            console.log("✅ Alamat tersimpan di Realtime Database, ID:", newAddressRef.key);
             return newAddressRef.key;
         }
 
         async function loadAddressesFromRTDB() {
             const user = auth.currentUser;
-            if (!user) {
-                console.log("❌ Tidak ada user login");
-                return [];
-            }
-            
+            if (!user) return [];
             const addressesRef = ref(db, `users/${user.uid}/addresses`);
-            
-            try {
-                const snapshot = await get(addressesRef);
-                const addresses = [];
-                if (snapshot.exists()) {
-                    snapshot.forEach((childSnapshot) => {
-                        addresses.push({
-                            id: childSnapshot.key,
-                            ...childSnapshot.val()
-                        });
-                    });
-                    console.log(`✅ ${addresses.length} alamat dimuat`);
-                } else {
-                    console.log("📭 Belum ada alamat");
-                }
-                return addresses.reverse();
-            } catch (error) {
-                console.error("❌ Error loading addresses:", error);
-                return [];
+            const snapshot = await get(addressesRef);
+            const addresses = [];
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    addresses.push({ id: childSnapshot.key, ...childSnapshot.val() });
+                });
             }
+            return addresses.reverse();
         }
 
         async function deleteAddressFromRTDB(addressId) {
             const user = auth.currentUser;
             if (!user) throw new Error('User tidak login');
-            
             const addressRef = ref(db, `users/${user.uid}/addresses/${addressId}`);
             await remove(addressRef);
-            console.log("✅ Alamat dihapus, ID:", addressId);
         }
 
-        // ========== Load User Profile Data ==========
+        // Load Profile
         async function loadUserProfile() {
             const user = auth.currentUser;
             if (!user) return;
@@ -190,16 +166,8 @@
                 '<span style="color: #2e7d32;">✓ Terverifikasi</span>' : 
                 '<span style="color: #d32f2f;">✗ Belum diverifikasi</span>';
             
-            try {
-                const addresses = await loadAddressesFromRTDB();
-                renderAddresses(addresses);
-            } catch (error) {
-                console.error('Error:', error);
-                const addressList = document.getElementById('addressList');
-                if (addressList) {
-                    addressList.innerHTML = '<div class="empty-address">Gagal memuat alamat.</div>';
-                }
-            }
+            const addresses = await loadAddressesFromRTDB();
+            renderAddresses(addresses);
         }
 
         function renderAddresses(addresses) {
@@ -215,14 +183,14 @@
                 <div class="address-card">
                     <div class="address-label">🏠 ${escapeHtml(addr.label || 'Alamat')}</div>
                     <div class="address-detail">
-                        <div class="detail-name">👤 ${escapeHtml(addr.name)}</div>
-                        <div class="detail-phone">📞 ${escapeHtml(addr.phone)}</div>
+                        <div>👤 ${escapeHtml(addr.name)}</div>
+                        <div>📞 ${escapeHtml(addr.phone)}</div>
                         <div>📍 ${escapeHtml(addr.street)}${addr.rtRw ? ', RT/RW: ' + escapeHtml(addr.rtRw) : ''}</div>
                         <div>${escapeHtml(addr.village)}, ${escapeHtml(addr.district)}</div>
                         <div>${escapeHtml(addr.city)}, ${escapeHtml(addr.province)} ${escapeHtml(addr.postal)}</div>
                     </div>
                     <div class="address-actions">
-                        <button class="delete-address" onclick="deleteAddress('${addr.id}')">🗑️ Hapus</button>
+                        <button class="delete-address" onclick="deleteAddress('${addr.id}')">Hapus</button>
                     </div>
                 </div>
             `).join('');
@@ -239,38 +207,24 @@
             document.getElementById('addressLabel').value = label;
             document.querySelectorAll('.label-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.textContent.includes(label)) {
-                    btn.classList.add('active');
-                }
+                if (btn.textContent.includes(label)) btn.classList.add('active');
             });
         }
 
-        // ========== ADD ADDRESS ==========
         window.addAddress = async function() {
-            console.log("🟢 ========== SIMPAN ALAMAT ==========");
-            
             const addressData = getAddressFromForm();
-            console.log("📦 Data:", addressData);
-            
-            // Validasi
             const required = ['name', 'phone', 'street', 'village', 'district', 'city', 'province', 'postal'];
             const missing = required.filter(field => !addressData[field]);
-            
             if (missing.length > 0) {
                 alert(`Field berikut harus diisi:\n- ${missing.join('\n- ')}`);
                 return;
             }
             
             const user = auth.currentUser;
-            if (!user) {
-                alert('Anda harus login terlebih dahulu!');
-                return;
-            }
+            if (!user) { alert('Anda harus login!'); return; }
             
             try {
                 await saveAddressToRTDB(addressData);
-                
-                // Reset form
                 document.getElementById('addressName').value = '';
                 document.getElementById('addressPhone').value = '';
                 document.getElementById('addressStreet').value = '';
@@ -280,18 +234,9 @@
                 document.getElementById('addressCity').value = '';
                 document.getElementById('addressProvince').value = '';
                 document.getElementById('addressPostal').value = '';
-                document.getElementById('addressLabel').value = 'Rumah';
-                
-                document.querySelectorAll('.label-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                    if (btn.textContent.includes('Rumah')) btn.classList.add('active');
-                });
-                
                 await loadUserProfile();
                 alert('✅ Alamat berhasil ditambahkan!');
-                
             } catch (error) {
-                console.error("❌ ERROR:", error);
                 alert('Gagal menambahkan alamat: ' + error.message);
             }
         }
@@ -299,7 +244,6 @@
         window.deleteAddress = async function(addressId) {
             if (!addressId) return;
             if (!confirm('Hapus alamat ini?')) return;
-            
             try {
                 await deleteAddressFromRTDB(addressId);
                 await loadUserProfile();
@@ -309,10 +253,9 @@
             }
         }
 
-        // ========== Update UI Login ==========
+        // Update UI Login
         function updateUIForLoggedInUser(user) {
             const displayName = user.displayName || user.email.split('@')[0];
-            
             const existingDropdown = document.querySelector('.user-dropdown');
             if (existingDropdown) existingDropdown.remove();
             
@@ -330,15 +273,8 @@
             accountIcon.style.position = 'relative';
             accountIcon.appendChild(dropdown);
             accountIcon.classList.add('user-menu');
-            
-            accountIcon.onclick = (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('show');
-            };
-            
-            document.addEventListener('click', () => {
-                dropdown.classList.remove('show');
-            });
+            accountIcon.onclick = (e) => { e.stopPropagation(); dropdown.classList.toggle('show'); };
+            document.addEventListener('click', () => { dropdown.classList.remove('show'); });
         }
 
         function resetUIToDefault() {
@@ -346,12 +282,11 @@
             accountIcon.style.position = 'static';
             accountIcon.classList.remove('user-menu');
             accountIcon.onclick = () => openModal();
-            
             const dropdown = document.querySelector('.user-dropdown');
             if (dropdown) dropdown.remove();
         }
 
-        // ========== Modal Functions ==========
+        // Modal Functions
         window.openModal = function() {
             document.getElementById('authModal').classList.add('active');
             showLogin();
@@ -376,7 +311,7 @@
             clearErrors();
         }
 
-        // ========== Auth Functions ==========
+        // Auth Functions
         window.handleGoogleLogin = async function() {
             try {
                 const result = await signInWithPopup(auth, googleProvider);
@@ -384,7 +319,7 @@
                 closeModal();
                 showHomeView();
             } catch (error) {
-                alert('Login Google gagal: ' + error.message);
+                alert('Login Google gagal!');
             }
         }
 
@@ -392,24 +327,17 @@
             const email = document.getElementById('loginEmail')?.value.trim();
             const password = document.getElementById('loginPassword')?.value;
             const loginBtn = document.getElementById('loginBtn');
-            
             clearErrors();
             if (!email) { showError('loginEmailError', 'Email harus diisi'); return; }
             if (!password) { showError('loginPasswordError', 'Password harus diisi'); return; }
-            
             if (loginBtn) setButtonLoading(loginBtn, true);
-            
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                if (!user.emailVerified) {
+                if (!userCredential.user.emailVerified) {
                     alert('⚠️ Email belum diverifikasi! Cek inbox Anda.');
-                    await signOut(auth);
                     if (loginBtn) setButtonLoading(loginBtn, false);
                     return;
                 }
-                
                 alert(`✅ Selamat datang kembali!`);
                 closeModal();
                 showHomeView();
@@ -426,9 +354,7 @@
             const password = document.getElementById('regPassword')?.value;
             const confirmPassword = document.getElementById('regConfirmPassword')?.value;
             const registerBtn = document.getElementById('registerBtn');
-            
             clearErrors();
-            
             if (!name) { showError('regNameError', 'Nama harus diisi'); return; }
             if (!email) { showError('regEmailError', 'Email harus diisi'); return; }
             if (!password || password.length < 8) { showError('regPasswordError', 'Password minimal 8 karakter'); return; }
@@ -436,14 +362,11 @@
             if (!/[a-z]/.test(password)) { showError('regPasswordError', 'Password harus huruf kecil'); return; }
             if (!/[0-9]/.test(password)) { showError('regPasswordError', 'Password harus angka'); return; }
             if (password !== confirmPassword) { showError('regConfirmError', 'Password tidak cocok'); return; }
-            
             if (registerBtn) setButtonLoading(registerBtn, true);
-            
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
                 await sendEmailVerification(userCredential.user);
-                
                 alert(`🎉 Selamat datang, ${name}! Cek email untuk verifikasi.`);
                 await signOut(auth);
                 closeModal();
@@ -479,11 +402,10 @@
             }
         }
 
-        window.viewOrders = function() {
-            alert('📦 Fitur pesanan akan segera hadir!');
-        }
+        window.viewOrders = function() { alert('📦 Fitur pesanan akan segera hadir!'); }
+        window.addToCart = function(productName, price) { alert(`🛒 ${productName} ditambahkan ke keranjang!`); }
 
-        // ========== Monitor Auth ==========
+        // Monitor Auth
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
@@ -509,7 +431,6 @@
                     window.addAddress();
                 });
             }
-            
             const defaultLabelBtn = document.querySelector('.label-btn');
             if (defaultLabelBtn && defaultLabelBtn.textContent.includes('Rumah')) {
                 defaultLabelBtn.classList.add('active');
@@ -545,144 +466,763 @@
         document.head.appendChild(style);
     </script>
 
-    <!-- CSS STYLES (sama seperti sebelumnya, lanjutkan di bawah) -->
     <style>
-        /* ========== SEMUA CSS SAMA SEPERTI SEBELUMNYA ========== */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #ffffff; color: #1a1a1a; line-height: 1.5; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 5%; background: white; position: fixed; width: 100%; top: 0; z-index: 1000; border-bottom: 1px solid #eee; }
-        .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; text-decoration: none; color: #1a1a1a; cursor: pointer; }
-        .menu-toggle { display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; }
-        .nav-links { display: flex; gap: 1.8rem; list-style: none; align-items: center; }
-        .nav-links a { color: #1a1a1a; text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; }
-        .nav-links a:hover { color: #b87c4e; }
-        .nav-icons { display: flex; gap: 1.2rem; align-items: center; }
-        .nav-icons span { cursor: pointer; font-size: 1.2rem; }
-        @media (max-width: 768px) {
-            .navbar { padding: 0.8rem 5%; flex-wrap: wrap; }
-            .menu-toggle { display: block; }
-            .nav-links { display: none; width: 100%; flex-direction: column; gap: 0; padding: 1rem 0; order: 3; }
-            .nav-links.show { display: flex; }
-            .nav-links li { width: 100%; text-align: center; }
-            .nav-links a { display: block; padding: 0.8rem 0; }
-            .nav-icons { gap: 1rem; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #fefcf8;
+            color: #2a2a2a;
+            line-height: 1.5;
+        }
+
+        h1, h2, h3, h4, .logo, .hero-title {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* ========== NAVIGASI ========== */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 5%;
+            background: rgba(254, 252, 248, 0.98);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #e8e0d5;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: #2a2a2a;
+            cursor: pointer;
+        }
+
+        .logo span {
+            font-weight: 400;
+            font-size: 0.9rem;
+            color: #b87c4e;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #2a2a2a;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #2a2a2a;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: #b87c4e;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 1.2rem;
+            align-items: center;
+        }
+
+        .nav-icons span {
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .nav-icons span:hover {
+            color: #b87c4e;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.8rem 5%;
+                flex-wrap: wrap;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                gap: 0;
+                padding: 1rem 0;
+                order: 3;
+                margin-top: 0.5rem;
+            }
+            .nav-links.show {
+                display: flex;
+            }
+            .nav-links li {
+                width: 100%;
+                text-align: center;
+            }
+            .nav-links a {
+                display: block;
+                padding: 0.8rem 0;
+            }
+            .nav-icons {
+                gap: 1rem;
+            }
+        }
+
+        /* ========== HERO SECTION ========== */
+        .hero {
+            min-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8rem 5% 4rem;
+            background: linear-gradient(135deg, #fefcf8 0%, #f5efe6 100%);
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero-tag {
+            font-size: 0.8rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #b87c4e;
+            margin-bottom: 1rem;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: #2a2a2a;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            padding: 0.9rem 2rem;
+            background: #b87c4e;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #9a663e;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            padding: 0.9rem 2rem;
+            background: transparent;
+            color: #2a2a2a;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .btn-outline:hover {
+            border-color: #b87c4e;
+            color: #b87c4e;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.2rem; }
+            .hero-subtitle { font-size: 0.95rem; }
+        }
+
+        /* ========== CATEGORY SECTION ========== */
+        .category-section {
+            padding: 5rem 5%;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: #888;
+            margin-bottom: 3rem;
+            font-size: 0.9rem;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .category-card {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .category-icon {
+            width: 100%;
+            height: 180px;
+            background: #f5efe6;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-card h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* ========== PRODUCT SECTION ========== */
+        .product-section {
+            padding: 5rem 5%;
+            background: #fefcf8;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+
+        .product-image {
+            height: 260px;
+            background: #f5efe6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5rem;
+        }
+
+        .product-info {
+            padding: 1.2rem;
+            text-align: center;
+        }
+
+        .product-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .product-aroma {
+            font-size: 0.7rem;
+            color: #b87c4e;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-weight: 600;
+            color: #2a2a2a;
+        }
+
+        .product-old-price {
+            font-size: 0.7rem;
+            color: #999;
+            text-decoration: line-through;
+            margin-left: 0.5rem;
+            font-weight: normal;
+        }
+
+        /* ========== TESTIMONIALS ========== */
+        .testimonials {
+            padding: 5rem 5%;
+            background: #f5efe6;
+            text-align: center;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 2rem auto 0;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.8rem;
+            text-align: left;
+        }
+
+        .stars {
+            color: #ffc107;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-text {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #b87c4e;
+        }
+
+        /* ========== NEWSLETTER ========== */
+        .newsletter {
+            padding: 5rem 5%;
+            text-align: center;
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .newsletter h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .newsletter p {
+            color: #ccc;
+            margin-bottom: 2rem;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 450px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            padding: 0.9rem 1.2rem;
+            border: none;
+            border-radius: 40px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .newsletter-form input:focus {
+            outline: none;
+        }
+
+        .btn-dark {
+            padding: 0.9rem 1.8rem;
+            background: #b87c4e;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            background: #1a1a1a;
+            color: #ccc;
+            padding: 3rem 5%;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-col h4 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .footer-col p, .footer-col a {
+            color: #999;
+            text-decoration: none;
+            font-size: 0.8rem;
+            line-height: 1.8;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-icon {
+            width: 35px;
+            height: 35px;
+            background: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .social-icon:hover {
+            background: #b87c4e;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 2rem;
+        }
+
+        /* ========== MODAL ========== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
         .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 24px; padding: 2rem; width: 90%; max-width: 420px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; cursor: pointer; color: #999; }
-        .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; margin-bottom: 1.5rem; text-align: center; }
-        .input-group { margin-bottom: 1rem; }
-        .input-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.85rem; color: #333; }
-        .input-group input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #ddd; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
-        .input-group input:focus { outline: none; border-color: #b87c4e; }
-        .modal-btn { width: 100%; padding: 0.9rem; background: #b87c4e; color: white; border: none; border-radius: 40px; cursor: pointer; font-weight: 600; margin-top: 0.5rem; }
-        .modal-footer { text-align: center; margin-top: 1rem; font-size: 0.85rem; color: #666; }
-        .modal-footer span { color: #b87c4e; cursor: pointer; font-weight: 600; }
-        .error-message { color: #d32f2f; font-size: 0.7rem; margin-top: 0.3rem; display: none; }
-        .forgot-password { text-align: right; margin-top: -0.5rem; margin-bottom: 0.5rem; }
-        .forgot-password a { font-size: 0.7rem; color: #b87c4e; cursor: pointer; }
-        .user-menu { position: relative; display: inline-block; }
-        .user-dropdown { display: none; position: absolute; right: 0; top: 35px; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); min-width: 180px; z-index: 100; border: 1px solid #eee; }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 420px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #b87c4e;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: #b87c4e;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .modal-footer {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .modal-footer span {
+            color: #b87c4e;
+            cursor: pointer;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 0.7rem;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: -0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .forgot-password a {
+            font-size: 0.7rem;
+            color: #b87c4e;
+            cursor: pointer;
+        }
+
+        /* User Dropdown */
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 35px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            min-width: 180px;
+            z-index: 100;
+            border: 1px solid #eee;
+        }
+
         .user-dropdown.show { display: block; }
-        .user-dropdown a { display: block; padding: 0.8rem 1rem; color: #333; text-decoration: none; font-size: 0.85rem; cursor: pointer; }
-        .user-dropdown a:hover { background: #f5f0e8; color: #b87c4e; }
-        .user-dropdown hr { margin: 0; border-top: 1px solid #eee; }
-        .user-name { padding: 0.8rem 1rem; color: #b87c4e; font-weight: 600; border-bottom: 1px solid #eee; }
-        .breadcrumb { margin-top: 80px; padding: 1rem 5%; font-size: 0.75rem; color: #666; }
-        .product-section { padding: 1.5rem 5%; display: flex; flex-wrap: wrap; gap: 2rem; }
-        .product-gallery { flex: 1; min-width: 280px; }
-        .main-image { background: #f5f0e8; border-radius: 20px; height: 400px; display: flex; align-items: center; justify-content: center; font-size: 7rem; margin-bottom: 1rem; }
-        .thumbnail-list { display: flex; gap: 0.8rem; flex-wrap: wrap; }
-        .thumbnail { width: 70px; height: 70px; background: #f5f0e8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; cursor: pointer; border: 2px solid transparent; }
-        .thumbnail:hover, .thumbnail.active { border-color: #b87c4e; }
-        .product-info { flex: 1; min-width: 280px; }
-        .vendor { font-size: 0.75rem; color: #b87c4e; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; }
-        .product-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .product-subtitle { color: #666; font-size: 0.85rem; margin-bottom: 0.8rem; }
-        .price { font-size: 1.6rem; font-weight: 700; color: #b87c4e; margin: 0.8rem 0; }
-        .badges { display: flex; gap: 0.8rem; margin: 0.8rem 0; flex-wrap: wrap; }
-        .badge { background: #f0f0f0; padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.65rem; font-weight: 500; }
-        .badge.green { background: #e8f5e9; color: #2e7d32; }
-        .size-section { margin: 1rem 0; }
-        .size-label { font-weight: 600; margin-bottom: 0.5rem; }
-        .size-options { display: flex; gap: 0.8rem; flex-wrap: wrap; }
-        .size-btn { padding: 0.4rem 1.2rem; border: 1px solid #ddd; background: white; border-radius: 30px; cursor: pointer; font-size: 0.85rem; }
-        .size-btn:hover, .size-btn.active { background: #b87c4e; color: white; border-color: #b87c4e; }
-        .action-buttons { display: flex; gap: 0.8rem; margin: 1.2rem 0; flex-wrap: wrap; }
-        .btn-add, .btn-buy { flex: 1; padding: 0.8rem; border-radius: 40px; cursor: pointer; font-weight: 600; text-align: center; }
-        .btn-add { background: #1a1a1a; color: white; border: none; }
-        .btn-add:hover { background: #b87c4e; }
-        .btn-buy { background: #b87c4e; color: white; border: none; }
-        .btn-buy:hover { background: #9a663e; }
-        .accordion-section { margin-top: 1rem; border-top: 1px solid #eee; }
-        .accordion-item { border-bottom: 1px solid #eee; }
-        .accordion-header { padding: 0.8rem 0; display: flex; justify-content: space-between; cursor: pointer; font-weight: 600; }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; color: #666; font-size: 0.85rem; }
-        .accordion-content.active { max-height: 300px; padding-bottom: 1rem; }
-        .also-like { padding: 2rem 5%; background: #faf7f2; }
-        .also-like h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 1.5rem; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
-        .like-card { cursor: pointer; transition: transform 0.3s; background: white; border-radius: 16px; padding: 1rem; }
-        .like-card:hover { transform: translateY(-5px); }
-        .like-image { background: #f5f0e8; border-radius: 12px; height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin-bottom: 0.8rem; }
-        .like-category { font-size: 0.6rem; color: #b87c4e; }
-        .like-title { font-weight: 600; margin: 0.4rem 0; font-size: 0.75rem; }
-        .like-price { color: #b87c4e; font-weight: 700; }
-        .profile-container { max-width: 800px; margin: 100px auto 2rem; padding: 0 5%; }
+
+        .user-dropdown a {
+            display: block;
+            padding: 0.8rem 1rem;
+            color: #333;
+            text-decoration: none;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .user-dropdown a:hover {
+            background: #f5efe6;
+            color: #b87c4e;
+        }
+
+        .user-dropdown hr {
+            margin: 0;
+            border-top: 1px solid #eee;
+        }
+
+        .user-name {
+            padding: 0.8rem 1rem;
+            color: #b87c4e;
+            font-weight: 600;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Profile View */
+        .profile-container {
+            max-width: 800px;
+            margin: 100px auto 2rem;
+            padding: 0 5%;
+        }
+
         .profile-header { text-align: center; margin-bottom: 2rem; }
-        .profile-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; color: #b87c4e; }
-        .card { background: white; border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .card h2 { font-size: 1.3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0; }
+        .profile-header h1 { font-size: 2rem; color: #b87c4e; }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .card h2 { font-size: 1.2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0; }
+
         .info-row { display: flex; padding: 0.8rem 0; border-bottom: 1px solid #f0f0f0; }
         .info-label { width: 120px; font-weight: 600; color: #666; }
-        .info-value { flex: 1; color: #333; }
-        .address-list { margin-bottom: 1rem; }
-        .address-card { background: #f9f9f9; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid #b87c4e; }
-        .address-label { display: inline-block; background: #b87c4e; color: white; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 20px; margin-bottom: 0.5rem; }
-        .address-detail { font-size: 0.85rem; line-height: 1.5; color: #333; }
+        .info-value { flex: 1; }
+
+        .address-card {
+            background: #f9f9f9;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #b87c4e;
+        }
+
+        .address-label {
+            display: inline-block;
+            background: #b87c4e;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            margin-bottom: 0.5rem;
+        }
+
+        .address-detail { font-size: 0.85rem; line-height: 1.5; }
         .address-actions { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
-        .address-actions button { background: none; border: none; color: #d32f2f; cursor: pointer; font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 20px; }
-        .address-actions button:hover { background: #ffebee; }
+        .address-actions button {
+            background: none;
+            border: none;
+            color: #d32f2f;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+        }
+        .address-actions button:hover { background: #ffebee; border-radius: 20px; }
+
         .empty-address { color: #999; text-align: center; padding: 1rem; }
+
         .address-form { display: flex; flex-direction: column; gap: 1rem; }
         .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
         .form-group { flex: 1; min-width: 150px; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.8rem; color: #333; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.8rem; }
         .form-group .required { color: #d32f2f; }
-        .form-group input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #ddd; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 0.85rem; }
+        .form-group input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #ddd; border-radius: 12px; }
         .form-group input:focus { outline: none; border-color: #b87c4e; }
+
         .label-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .label-btn { padding: 0.5rem 1rem; background: #f0f0f0; border: 1px solid #ddd; border-radius: 30px; cursor: pointer; font-size: 0.8rem; }
+        .label-btn {
+            padding: 0.5rem 1rem;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
         .label-btn:hover, .label-btn.active { background: #b87c4e; color: white; border-color: #b87c4e; }
-        .btn-add-address { width: 100%; padding: 0.9rem; background: #b87c4e; color: white; border: none; border-radius: 40px; cursor: pointer; font-weight: 600; margin-top: 0.5rem; }
-        .btn-add-address:hover { background: #9a663e; }
+
+        .btn-add-address {
+            width: 100%;
+            padding: 0.8rem;
+            background: #b87c4e;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
         .button-group { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
         .btn-back-home, .btn-logout { flex: 1; padding: 0.8rem; border-radius: 40px; cursor: pointer; font-weight: 600; text-align: center; }
         .btn-back-home { background: #f0f0f0; color: #333; border: none; }
-        .btn-back-home:hover { background: #e0e0e0; }
         .btn-logout { background: #d32f2f; color: white; border: none; }
-        .btn-logout:hover { background: #b71c1c; }
-        .footer { background: #1a1a1a; color: #ccc; padding: 2rem 5%; }
-        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
-        .footer-col h4 { color: white; margin-bottom: 0.8rem; font-size: 0.9rem; }
-        .footer-col p { color: #999; font-size: 0.75rem; line-height: 1.6; }
-        .social-icons { display: flex; gap: 0.8rem; margin-top: 0.8rem; }
-        .social-icon { width: 32px; height: 32px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .copyright { text-align: center; padding-top: 1.5rem; border-top: 1px solid #333; font-size: 0.65rem; color: #666; }
-        .chat-btn { position: fixed; bottom: 20px; right: 20px; background: #b87c4e; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 100; }
+
+        .chat-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #b87c4e;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+
         @media (max-width: 768px) {
             .info-row { flex-direction: column; }
-            .info-label { width: 100%; margin-bottom: 0.3rem; }
-            .form-row { flex-direction: column; gap: 0.8rem; }
+            .info-label { width: 100%; }
+            .form-row { flex-direction: column; }
             .button-group { flex-direction: column; }
-        }
-        @media (max-width: 480px) {
-            .main-image { height: 300px; font-size: 5rem; }
-            .thumbnail { width: 55px; height: 55px; font-size: 1.3rem; }
-            .product-title { font-size: 1.4rem; }
-            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
-            .like-image { height: 120px; font-size: 2.5rem; }
         }
     </style>
 </head>
@@ -690,91 +1230,156 @@
 
     <!-- ========== NAVIGASI ========== -->
     <nav class="navbar" id="navbar">
-        <a href="#" class="logo" onclick="showHomeView(); return false;">ARVELUNA</a>
+        <a href="#" class="logo" onclick="showHomeView(); return false;">ARVELUNA<span>candle</span></a>
         <button class="menu-toggle" id="menuToggle">☰</button>
         <ul class="nav-links" id="navLinks">
             <li><a href="#" onclick="showHomeView(); return false;">Home</a></li>
-            <li><a href="#" onclick="showHomeView(); return false;">Aromatic Candles</a></li>
-            <li><a href="#" onclick="showHomeView(); return false;">Essential Oil</a></li>
-            <li><a href="#" onclick="showHomeView(); return false;">Diffuser</a></li>
-            <li><a href="#" onclick="showHomeView(); return false;">Gift Set</a></li>
+            <li><a href="#" onclick="showHomeView(); return false;">Shop</a></li>
+            <li><a href="#" onclick="showHomeView(); return false;">About</a></li>
+            <li><a href="#" onclick="showHomeView(); return false;">Journal</a></li>
         </ul>
         <div class="nav-icons">
-            <span>🔍</span>
             <span id="accountIcon">👤</span>
-            <span>🛒</span>
+            <span id="cartIcon" onclick="showCartView()">🛒</span>
         </div>
     </nav>
 
     <!-- ========== HOME VIEW ========== -->
     <div id="homeView">
-        <div class="breadcrumb">
-            <a href="#" onclick="showHomeView(); return false;">Home</a> / <a href="#" onclick="showHomeView(); return false;">Aromatic Candles</a> / <span style="color:#b87c4e;">Buai Aromatic Jar Candles by Arveluna</span>
-        </div>
-        <section class="product-section">
-            <div class="product-gallery">
-                <div class="main-image" id="mainImage">🕯️✨🌸</div>
-                <div class="thumbnail-list">
-                    <div class="thumbnail active" onclick="changeImage('🕯️✨🌸')">🕯️✨🌸</div>
-                    <div class="thumbnail" onclick="changeImage('🕯️🌙✨')">🕯️🌙✨</div>
-                    <div class="thumbnail" onclick="changeImage('🕯️🌿✨')">🕯️🌿✨</div>
-                    <div class="thumbnail" onclick="changeImage('🕯️🍊✨')">🕯️🍊✨</div>
-                </div>
-            </div>
-            <div class="product-info">
-                <div class="vendor">ARVELUNA</div>
-                <h1 class="product-title">Buai Aromatic Jar Candles</h1>
-                <div class="product-subtitle">by Arveluna Candle</div>
-                <div class="price" id="priceDisplay">Rp 120.000,00</div>
-                <div class="badges">
-                    <span class="badge green">✓ Halal</span>
-                    <span class="badge green">✓ No Animal Testing</span>
-                    <span class="badge green">✓ Natural Ingredients</span>
-                </div>
-                <div class="size-section">
-                    <div class="size-label">Size:</div>
-                    <div class="size-options">
-                        <button class="size-btn active" onclick="selectSize(this, '90 gr', 120000)">90 gr</button>
-                        <button class="size-btn" onclick="selectSize(this, '180 gr', 195000)">180 gr</button>
-                    </div>
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-add" onclick="addToCart()">Add To Cart</button>
-                    <button class="btn-buy" onclick="buyNow()">Buy It Now</button>
-                </div>
-                <div class="accordion-section">
-                    <div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)">Description <span>▼</span></div>
-                    <div class="accordion-content"><p>Nikmati kehangatan dan kenyamanan dengan Buai Aromatic Jar Candle.</p></div></div>
-                    <div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)">Cara Pakai <span>▼</span></div>
-                    <div class="accordion-content"><p>Nyalakan lilin dengan korek api. Letakkan di permukaan stabil.</p></div></div>
-                    <div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)">Ingredients <span>▼</span></div>
-                    <div class="accordion-content"><p>Soy wax, Beeswax, Essential Oil, Dried Flowers.</p></div></div>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-tag">Handcrafted with intention</div>
+                <h1 class="hero-title">Where Everyday Moments Become Rituals</h1>
+                <p class="hero-subtitle">Handcrafted candles and body care designed to bring calm, beauty, and intention into your daily life.</p>
+                <div class="hero-buttons">
+                    <button class="btn-primary" onclick="alert('Shop The Collection')">Shop The Collection →</button>
+                    <button class="btn-outline" onclick="alert('Learn More')">Learn More</button>
                 </div>
             </div>
         </section>
-        <section class="also-like">
-            <h2>You May Also Like</h2>
-            <div class="product-grid">
-                <div class="like-card" onclick="alert('Rayu Aromatic Jar Candles')"><div class="like-image">🕯️💛</div><div class="like-category">CANDLE</div><div class="like-title">Rayu Aromatic Jar Candles</div><div class="like-price">Rp 120.000</div></div>
-                <div class="like-card" onclick="alert('1963 Aromatic Jar Candles')"><div class="like-image">🕯️🤎</div><div class="like-category">CANDLE</div><div class="like-title">1963 Aromatic Jar Candles</div><div class="like-price">Rp 120.000</div></div>
-                <div class="like-card" onclick="alert('Buai Eau de Parfum')"><div class="like-image">🌸✨</div><div class="like-category">EAU DE PARFUM</div><div class="like-title">Buai Eau de Parfum</div><div class="like-price">Rp 105.000</div></div>
-                <div class="like-card" onclick="alert('Buai Signature Essential Oil')"><div class="like-image">🌿✨</div><div class="like-category">ESSENTIAL OIL</div><div class="like-title">Buai Signature Essential Oil</div><div class="like-price">Rp 98.000</div></div>
+
+        <!-- Category Section -->
+        <section class="category-section">
+            <h2 class="section-title">Our Collections</h2>
+            <p class="section-subtitle">Discover thoughtfully crafted pieces for your ritual</p>
+            <div class="category-grid">
+                <div class="category-card" onclick="alert('Candles Collection')">
+                    <div class="category-icon">🕯️</div>
+                    <h3>Candles</h3>
+                </div>
+                <div class="category-card" onclick="alert('Essential Oil Collection')">
+                    <div class="category-icon">🌿</div>
+                    <h3>Essential Oil</h3>
+                </div>
+                <div class="category-card" onclick="alert('Diffuser Collection')">
+                    <div class="category-icon">💨</div>
+                    <h3>Diffuser</h3>
+                </div>
+                <div class="category-card" onclick="alert('Gift Set Collection')">
+                    <div class="category-icon">🎁</div>
+                    <h3>Gift Set</h3>
+                </div>
             </div>
+        </section>
+
+        <!-- Best Seller Products -->
+        <section class="product-section">
+            <h2 class="section-title">Best Sellers</h2>
+            <p class="section-subtitle">Our most loved fragrances</p>
+            <div class="product-grid">
+                <div class="product-card" onclick="addToCart('Lavender Dream', 89000)">
+                    <div class="product-image">🕯️💜</div>
+                    <div class="product-info">
+                        <h3 class="product-title">Lavender Dream</h3>
+                        <div class="product-aroma">LAVENDER • VANILLA</div>
+                        <div class="product-price">Rp89.000 <span class="product-old-price">Rp120.000</span></div>
+                    </div>
+                </div>
+                <div class="product-card" onclick="addToCart('Rose Garden', 125000)">
+                    <div class="product-image">🕯️🌹</div>
+                    <div class="product-info">
+                        <h3 class="product-title">Rose Garden</h3>
+                        <div class="product-aroma">ROSE • GERANIUM</div>
+                        <div class="product-price">Rp125.000</div>
+                    </div>
+                </div>
+                <div class="product-card" onclick="addToCart('Sandalwood Zen', 110000)">
+                    <div class="product-image">🕯️🌿</div>
+                    <div class="product-info">
+                        <h3 class="product-title">Sandalwood Zen</h3>
+                        <div class="product-aroma">SANDALWOOD • PATCHOULI</div>
+                        <div class="product-price">Rp110.000</div>
+                    </div>
+                </div>
+                <div class="product-card" onclick="addToCart('Ocean Breeze', 79000)">
+                    <div class="product-image">🕯️🌊</div>
+                    <div class="product-info">
+                        <h3 class="product-title">Ocean Breeze</h3>
+                        <div class="product-aroma">SEA SALT • COTTON</div>
+                        <div class="product-price">Rp79.000 <span class="product-old-price">Rp99.000</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <h2 class="section-title">Customer Testimonials</h2>
+            <p class="section-subtitle">What our customers are saying</p>
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"Best candle I have ever used! It smells so good and burns slower than most candles. Highly recommend!"</p>
+                    <p class="testimonial-author">— Sarah J.</p>
+                </div>
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"The quality is amazing! You can tell they use natural ingredients. My home smells wonderful."</p>
+                    <p class="testimonial-author">— Michael T.</p>
+                </div>
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">"Beautiful packaging and even better scent. Will definitely order again!"</p>
+                    <p class="testimonial-author">— Emily R.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter -->
+        <section class="newsletter">
+            <h2>Don't Miss Out</h2>
+            <p>Be the first to know about new collections and exclusive offers.</p>
+            <form class="newsletter-form" onsubmit="alert('Thank you for subscribing!'); return false;">
+                <input type="email" placeholder="Your email address" required>
+                <button type="submit" class="btn-dark">Sign Up Now →</button>
+            </form>
         </section>
     </div>
 
     <!-- ========== PROFILE VIEW ========== -->
     <div id="profileView" style="display: none;">
         <div class="profile-container">
-            <div class="profile-header"><h1>Profil Saya</h1><p>Kelola informasi akun dan alamat Anda</p></div>
-            <div class="card"><h2>Informasi Akun</h2>
+            <div class="profile-header">
+                <h1>Profil Saya</h1>
+                <p>Kelola informasi akun dan alamat Anda</p>
+            </div>
+
+            <div class="card">
+                <h2>Informasi Akun</h2>
                 <div class="info-row"><div class="info-label">Nama</div><div class="info-value" id="profileName">-</div></div>
                 <div class="info-row"><div class="info-label">Email</div><div class="info-value" id="profileEmail">-</div></div>
                 <div class="info-row"><div class="info-label">Metode Login</div><div class="info-value" id="profileMethod">-</div></div>
                 <div class="info-row"><div class="info-label">Verifikasi Email</div><div class="info-value" id="profileVerified">-</div></div>
             </div>
-            <div class="card"><h2>📦 Daftar Alamat</h2><div class="address-list" id="addressList"><div class="empty-address">Memuat alamat...</div></div></div>
-            <div class="card"><h2>➕ Tambah Alamat Baru</h2>
+
+            <div class="card">
+                <h2>📦 Daftar Alamat</h2>
+                <div class="address-list" id="addressList"><div class="empty-address">Memuat alamat...</div></div>
+            </div>
+
+            <div class="card">
+                <h2>➕ Tambah Alamat Baru</h2>
                 <form id="addAddressForm" class="address-form">
                     <div class="form-row">
                         <div class="form-group"><label>Nama Penerima <span class="required">*</span></label><input type="text" id="addressName" placeholder="Contoh: Ahmad Wijaya" required></div>
@@ -805,6 +1410,7 @@
                     <button type="submit" class="btn-add-address">Simpan Alamat</button>
                 </form>
             </div>
+
             <div class="button-group">
                 <button class="btn-back-home" onclick="backToHome()">← Kembali ke Toko</button>
                 <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
@@ -812,14 +1418,56 @@
         </div>
     </div>
 
+    <!-- ========== CART VIEW ========== -->
+    <div id="cartView" style="display: none;">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h1>Keranjang Belanja</h1>
+                <p>Belanjaan Anda saat ini</p>
+            </div>
+            <div class="card">
+                <div class="empty-address">Keranjang belanja Anda masih kosong</div>
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <button class="btn-primary" onclick="backToHome()">Belanja Sekarang →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ========== FOOTER ========== -->
     <footer class="footer">
         <div class="footer-grid">
-            <div class="footer-col"><h4>ARVELUNA</h4><p>Lilin aromaterapi dari bahan alami untuk menghadirkan ketenangan.</p><div class="social-icons"><div class="social-icon" onclick="alert('Instagram')">📷</div><div class="social-icon" onclick="alert('Facebook')">📘</div><div class="social-icon" onclick="alert('TikTok')">🎵</div></div></div>
-            <div class="footer-col"><h4>Customer Service</h4><p>Mon-Sat, 10am-5pm<br>📞 +62 812 3456 7890<br>✉️ hello@arveluna.com</p></div>
-            <div class="footer-col"><h4>Flagship Store</h4><p>Jl. Raya Kebayoran Lama No. 123, Jakarta Selatan</p></div>
+            <div class="footer-col">
+                <h4>ARVELUNA</h4>
+                <p>Handcrafted candles and body care designed to bring calm and intention into your daily life.</p>
+                <div class="social-icons">
+                    <div class="social-icon" onclick="alert('Instagram: @arveluna.candle')">📷</div>
+                    <div class="social-icon" onclick="alert('Facebook: Arveluna Candle')">📘</div>
+                    <div class="social-icon" onclick="alert('TikTok: @arveluna')">🎵</div>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <p><a href="#" onclick="showHomeView(); return false;">Home</a></p>
+                <p><a href="#" onclick="showHomeView(); return false;">Shop</a></p>
+                <p><a href="#" onclick="showHomeView(); return false;">About</a></p>
+                <p><a href="#" onclick="showHomeView(); return false;">Journal</a></p>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <p>📞 +62 812 3456 7890</p>
+                <p>✉️ hello@arveluna.com</p>
+                <p>Mon-Sat, 10am-5pm</p>
+            </div>
+            <div class="footer-col">
+                <h4>Location</h4>
+                <p>Jl. Raya Kebayoran Lama No. 123</p>
+                <p>Jakarta Selatan, Indonesia</p>
+            </div>
         </div>
-        <div class="copyright"><p>&copy; 2024 Arveluna Candle. All rights reserved.</p></div>
+        <div class="copyright">
+            <p>&copy; 2024 Arveluna Candle. All rights reserved.</p>
+        </div>
     </footer>
 
     <div class="chat-btn" onclick="alert('Halo! Ada yang bisa kami bantu? 💬')">💬</div>
@@ -852,7 +1500,7 @@
     </div>
 
     <script>
-        // ========== HAMBURGER MENU ==========
+        // Hamburger Menu
         const menuToggle = document.getElementById('menuToggle');
         const navLinksHp = document.getElementById('navLinks');
         const navbar = document.getElementById('navbar');
@@ -860,30 +1508,6 @@
             menuToggle.addEventListener('click', function(e) { e.stopPropagation(); navLinksHp.classList.toggle('show'); });
             document.addEventListener('click', function(e) { if (navbar && !navbar.contains(e.target)) navLinksHp.classList.remove('show'); });
         }
-
-        // ========== PRODUCT FUNCTIONS ==========
-        window.changeImage = function(emoji) {
-            document.getElementById('mainImage').innerHTML = emoji;
-            document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
-            event.target.classList.add('active');
-        }
-        let currentPrice = 120000, currentSize = '90 gr';
-        window.selectSize = function(btn, size, price) {
-            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentSize = size;
-            currentPrice = price;
-            document.getElementById('priceDisplay').innerHTML = `Rp ${price.toLocaleString('id-ID')},00`;
-        }
-        window.addToCart = function() { alert(`🛒 ${currentSize} Arveluna Candle ditambahkan ke keranjang!`); }
-        window.buyNow = function() { alert(`💳 Lanjutkan pembayaran untuk ${currentSize} Arveluna Candle`); }
-        window.toggleAccordion = function(header) {
-            const content = header.nextElementSibling;
-            const isActive = content.classList.contains('active');
-            document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('active'));
-            if (!isActive) content.classList.add('active');
-        }
-        document.querySelector('.nav-icons span:last-child').addEventListener('click', function() { alert('Keranjang belanja Anda masih kosong 🛒'); });
     </script>
 </body>
 </html>
