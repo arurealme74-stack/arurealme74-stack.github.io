@@ -593,7 +593,7 @@
             }
         }
 
-        /* ========== BANNER SLIDER (CAROUSEL) - DENGAN GAMBAR ========== */
+        /* ========== BANNER SLIDER (CAROUSEL) - HANYA GAMBAR ========== */
         .banner-section {
             margin-top: 80px;
             position: relative;
@@ -644,60 +644,7 @@
             height: 100%;
             background-size: cover;
             background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .banner-slide::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.35);
-        }
-
-        .banner-content {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-            color: white;
-            padding: 0 1rem;
-            max-width: 700px;
-        }
-
-        .banner-content h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        .banner-content p {
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-            opacity: 0.95;
-        }
-
-        .banner-btn {
-            padding: 0.8rem 2rem;
-            background: #b87c4e;
-            color: white;
-            border: none;
-            border-radius: 40px;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-
-        .banner-btn:hover {
-            background: #9a663e;
-            transform: scale(1.05);
+            background-repeat: no-repeat;
         }
 
         /* Dots indicator */
@@ -728,13 +675,10 @@
 
         @media (max-width: 768px) {
             .banner-container { height: 400px; }
-            .banner-content h2 { font-size: 1.8rem; }
-            .banner-content p { font-size: 0.9rem; }
         }
 
         @media (max-width: 480px) {
             .banner-container { height: 350px; }
-            .banner-content h2 { font-size: 1.4rem; }
         }
 
         /* ========== HERO SECTION ========== */
@@ -1318,37 +1262,23 @@
         </div>
     </nav>
 
-    <!-- ========== BANNER SLIDER (CAROUSEL) - DENGAN GAMBAR ANDA ========== -->
+    <!-- ========== BANNER SLIDER (CAROUSEL) - HANYA GAMBAR ========== -->
     <div class="banner-section">
         <div class="banner-container" id="bannerContainer">
             <div class="banner-slides" id="bannerSlides">
                 
                 <!-- Slide 1 - banner1.jpeg -->
                 <div class="banner-slide" style="background-image: url('banner1.jpeg'); background-size: cover; background-position: center;">
-                    <div class="banner-content">
-                        <h2>✨ New Collection ✨</h2>
-                        <p>Discover our latest handcrafted candles with captivating new scents</p>
-                        <button class="banner-btn" onclick="alert('Explore New Collection')">Shop Now →</button>
-                    </div>
                 </div>
                 
                 <!-- Slide 2 - banner2.jpeg -->
                 <div class="banner-slide" style="background-image: url('banner2.jpeg'); background-size: cover; background-position: center;">
-                    <div class="banner-content">
-                        <h2>🎉 20% OFF First Order 🎉</h2>
-                        <p>Use code: ARVELUNA20 at checkout. Limited time offer!</p>
-                        <button class="banner-btn" onclick="alert('Use code: ARVELUNA20')">Shop Now →</button>
-                    </div>
                 </div>
                 
                 <!-- Slide 3 - banner3.jpeg -->
                 <div class="banner-slide" style="background-image: url('banner3.jpeg'); background-size: cover; background-position: center;">
-                    <div class="banner-content">
-                        <h2>🚚 Free Shipping 🚚</h2>
-                        <p>On all orders over Rp 200.000. Shop your favorite candles today!</p>
-                        <button class="banner-btn" onclick="alert('Free shipping on orders over Rp200.000')">Shop Now →</button>
-                    </div>
                 </div>
+                
             </div>
             <div class="banner-dots" id="bannerDots"></div>
         </div>
