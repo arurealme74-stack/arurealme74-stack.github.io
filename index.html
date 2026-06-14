@@ -804,90 +804,124 @@
             }
         }
 
-        /* ========== BANNER SLIDER (CAROUSEL) - UKURAN IDEAL ========== */
-        .banner-section {
-            margin-top: 80px;
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-        }
+        /* ========== BANNER SLIDER (CAROUSEL) - TANPA TERPOTONG ========== */
+.banner-section {
+    margin-top: 80px;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
 
-        .banner-container {
-            position: relative;
-            width: 100%;
-            max-height: 450px;
-            overflow: hidden;
-            cursor: pointer;
-        }
+.banner-container {
+    position: relative;
+    width: 100%;
+    background: #1a1a1a;
+    overflow: hidden;
+    cursor: pointer;
+}
 
-        .banner-slides {
-            display: flex;
-            transition: transform 0.5s ease-in-out;
-            width: 100%;
-        }
+.banner-slides {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+}
 
-        .banner-slide {
-            min-width: 100%;
-            flex-shrink: 0;
-        }
+.banner-slide {
+    min-width: 100%;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #1a1a1a;
+}
 
-        .banner-slide img {
-            width: 100%;
-            height: auto;
-            max-height: 450px;
-            object-fit: cover;
-            display: block;
-        }
+.banner-slide img {
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    object-fit: contain;
+    display: block;
+}
 
-        /* Area kiri/kanan untuk geser */
-        .banner-container::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 33.33%;
-            height: 100%;
-            z-index: 15;
-            cursor: pointer;
-        }
+/* Area kiri/kanan untuk geser */
+.banner-container::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 33.33%;
+    height: 100%;
+    z-index: 15;
+    cursor: pointer;
+}
 
-        .banner-container::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 33.33%;
-            height: 100%;
-            z-index: 15;
-            cursor: pointer;
-        }
+.banner-container::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 33.33%;
+    height: 100%;
+    z-index: 15;
+    cursor: pointer;
+}
 
-        /* Dots indicator */
-        .banner-dots {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 12px;
-            z-index: 20;
-        }
+/* Dots indicator */
+.banner-dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 20;
+}
 
-        .banner-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+.banner-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s;
+}
 
-        .banner-dot.active {
-            background: #b87c4e;
-            width: 25px;
-            border-radius: 10px;
-        }
+.banner-dot.active {
+    background: #b87c4e;
+    width: 25px;
+    border-radius: 10px;
+}
 
+/* Responsive */
+@media (max-width: 768px) {
+    .banner-section {
+        margin-top: 70px;
+    }
+    
+    .banner-slide img {
+        max-height: 50vh;
+    }
+    
+    .banner-dots {
+        bottom: 10px;
+        gap: 8px;
+    }
+    
+    .banner-dot {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .banner-dot.active {
+        width: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .banner-slide img {
+        max-height: 40vh;
+    }
+}
         /* Tablet */
         @media (max-width: 1024px) {
             .banner-container {
