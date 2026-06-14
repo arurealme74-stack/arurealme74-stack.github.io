@@ -927,117 +927,142 @@
             }
         }
 
-        /* ========== BANNER SLIDER - RESPONSIF ========== */
-        .banner-section {
-            margin-top: 65px;
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-        }
+        /* ========== BANNER SLIDER - UKURAN PAS DI LAYAR ========== */
+.banner-section {
+    margin-top: 60px;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
 
-        .banner-container {
-            position: relative;
-            width: 100%;
-            background: #f5efe6;
-            overflow: hidden;
-        }
+.banner-container {
+    position: relative;
+    width: 100%;
+    background: #f5efe6;
+    overflow: hidden;
+}
 
-        .banner-slides {
-            display: flex;
-            transition: transform 0.5s ease-in-out;
-            width: 100%;
-        }
+.banner-slides {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+}
 
-        .banner-slide {
-            min-width: 100%;
-            flex-shrink: 0;
-            position: relative;
-        }
+.banner-slide {
+    min-width: 100%;
+    flex-shrink: 0;
+    position: relative;
+}
 
-        .banner-slide img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
+.banner-slide img {
+    width: 100%;
+    height: auto;
+    max-height: 280px;
+    object-fit: contain;
+    display: block;
+    background: #f5efe6;
+}
 
-        .banner-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 36px;
-            height: 36px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1rem;
-            cursor: pointer;
-            z-index: 20;
-            transition: all 0.3s;
-        }
+/* Tombol navigasi */
+.banner-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.3s;
+}
 
-        .banner-nav-left {
-            left: 10px;
-        }
+.banner-nav-left {
+    left: 8px;
+}
 
-        .banner-nav-right {
-            right: 10px;
-        }
+.banner-nav-right {
+    right: 8px;
+}
 
-        .banner-dots {
-            position: absolute;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
-            z-index: 20;
-        }
+.banner-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 20;
+}
 
-        .banner-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+.banner-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.3s;
+}
 
-        .banner-dot.active {
-            background: #b87c4e;
-            width: 20px;
-            border-radius: 10px;
-        }
+.banner-dot.active {
+    background: #b87c4e;
+    width: 18px;
+    border-radius: 10px;
+}
 
-        @media (max-width: 768px) {
-            .banner-section {
-                margin-top: 58px;
-            }
-            .banner-nav {
-                width: 28px;
-                height: 28px;
-                font-size: 0.8rem;
-            }
-            .banner-nav-left {
-                left: 5px;
-            }
-            .banner-nav-right {
-                right: 5px;
-            }
-            .banner-dots {
-                bottom: 8px;
-                gap: 6px;
-            }
-            .banner-dot {
-                width: 6px;
-                height: 6px;
-            }
-            .banner-dot.active {
-                width: 16px;
-            }
-        }
+/* Untuk HP - ukuran lebih kecil */
+@media (max-width: 768px) {
+    .banner-section {
+        margin-top: 55px;
+    }
+    
+    .banner-slide img {
+        max-height: 220px;
+        object-fit: contain;
+    }
+    
+    .banner-nav {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+    
+    .banner-nav-left {
+        left: 5px;
+    }
+    
+    .banner-nav-right {
+        right: 5px;
+    }
+    
+    .banner-dots {
+        bottom: 6px;
+        gap: 6px;
+    }
+    
+    .banner-dot {
+        width: 6px;
+        height: 6px;
+    }
+    
+    .banner-dot.active {
+        width: 14px;
+    }
+}
+
+/* Untuk HP layar sangat kecil */
+@media (max-width: 480px) {
+    .banner-slide img {
+        max-height: 180px;
+        object-fit: contain;
+    }
+}
+
 
         /* ========== HERO SECTION ========== */
         .hero-section {
