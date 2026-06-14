@@ -926,110 +926,145 @@
             }
         }
 
-        /* ========== BANNER SLIDER ========== */
-        .banner-section {
-            margin-top: 80px;
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-        }
+    /* ========== BANNER SLIDER ========== */
+.banner-section {
+    margin-top: 80px;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
 
-        .banner-container {
-            position: relative;
-            width: 100%;
-            background: #f5efe6;
-            overflow: hidden;
-            cursor: pointer;
-        }
+.banner-container {
+    position: relative;
+    width: 100%;
+    background: #f5efe6;
+    overflow: hidden;
+}
 
-        .banner-slides {
-            display: flex;
-            transition: transform 0.5s ease-in-out;
-            width: 100%;
-        }
+.banner-slides {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+}
 
-        .banner-slide {
-            min-width: 100%;
-            flex-shrink: 0;
-            position: relative;
-        }
+.banner-slide {
+    min-width: 100%;
+    flex-shrink: 0;
+    position: relative;
+}
 
-        .banner-slide img {
-            width: 100%;
-            height: auto;
-            max-height: 70vh;
-            object-fit: cover;
-            object-position: center;
-            display: block;
-        }
+.banner-slide img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
 
-        .banner-container::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 33.33%;
-            height: 100%;
-            z-index: 15;
-            cursor: pointer;
-        }
+/* Tombol navigasi kiri/kanan */
+.banner-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.3s;
+}
 
-        .banner-container::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 33.33%;
-            height: 100%;
-            z-index: 15;
-            cursor: pointer;
-        }
+.banner-nav:hover {
+    background: rgba(184, 124, 78, 0.8);
+}
 
-        .banner-dots {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 12px;
-            z-index: 20;
-        }
+.banner-nav-left {
+    left: 15px;
+}
 
-        .banner-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.5);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+.banner-nav-right {
+    right: 15px;
+}
 
-        .banner-dot.active {
-            background: #b87c4e;
-            width: 25px;
-            border-radius: 10px;
-        }
+.banner-dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 20;
+}
 
-        @media (max-width: 768px) {
-            .banner-section {
-                margin-top: 70px;
-            }
-            .banner-slide img {
-                max-height: 50vh;
-            }
-            .banner-dots {
-                bottom: 10px;
-                gap: 8px;
-            }
-            .banner-dot {
-                width: 8px;
-                height: 8px;
-            }
-            .banner-dot.active {
-                width: 20px;
-            }
-        }
+.banner-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: all 0.3s;
+}
 
+.banner-dot.active {
+    background: #b87c4e;
+    width: 25px;
+    border-radius: 10px;
+}
+
+/* Responsive untuk tablet & HP */
+@media (max-width: 768px) {
+    .banner-section {
+        margin-top: 70px;
+    }
+    
+    .banner-slide img {
+        aspect-ratio: 4 / 5;
+        object-fit: cover;
+    }
+    
+    .banner-nav {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+    
+    .banner-nav-left {
+        left: 10px;
+    }
+    
+    .banner-nav-right {
+        right: 10px;
+    }
+    
+    .banner-dots {
+        bottom: 10px;
+        gap: 8px;
+    }
+    
+    .banner-dot {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .banner-dot.active {
+        width: 20px;
+    }
+}
+
+/* Untuk layar sangat kecil (HP < 480px) */
+@media (max-width: 480px) {
+    .banner-slide img {
+        aspect-ratio: 3 / 4;
+    }
+}
+        
         /* ========== HERO SECTION ========== */
         .hero-section {
             padding: 8rem 5% 4rem;
@@ -1806,14 +1841,25 @@
         </div>
     </nav>
 
-    <!-- ========== BANNER SLIDER ========== -->
+        <!-- ========== BANNER SLIDER ========== -->
     <div class="banner-section">
         <div class="banner-container" id="bannerContainer">
             <div class="banner-slides" id="bannerSlides">
-                <div class="banner-slide"><img src="images/banner1.jpeg" alt="Banner 1"></div>
-                <div class="banner-slide"><img src="images/banner2.jpeg" alt="Banner 2"></div>
-                <div class="banner-slide"><img src="images/banner3.jpeg" alt="Banner 3"></div>
+                <div class="banner-slide">
+                    <img src="images/banner1.jpeg" alt="Special Discount Banner">
+                </div>
+                <div class="banner-slide">
+                    <img src="images/banner2.jpeg" alt="Arveluna Collection">
+                </div>
+                <div class="banner-slide">
+                    <img src="images/banner3.jpeg" alt="Handmade with Love">
+                </div>
             </div>
+            
+            <!-- Tombol navigasi kiri/kanan -->
+            <div class="banner-nav banner-nav-left" id="bannerPrev">❮</div>
+            <div class="banner-nav banner-nav-right" id="bannerNext">❯</div>
+            
             <div class="banner-dots" id="bannerDots"></div>
         </div>
     </div>
@@ -2000,22 +2046,31 @@
     </div>
 
     <script>
-        // ========== BANNER CAROUSEL ==========
+               // ========== BANNER CAROUSEL (Responsive) ==========
         const bannerSlides = document.getElementById('bannerSlides');
         const bannerContainer = document.getElementById('bannerContainer');
         const bannerDots = document.getElementById('bannerDots');
+        const bannerPrev = document.getElementById('bannerPrev');
+        const bannerNext = document.getElementById('bannerNext');
         const slideCount = document.querySelectorAll('.banner-slide').length;
         let currentIndex = 0;
         let autoInterval;
-        let startX, currentX;
+        let touchStartX = 0;
+        let touchEndX = 0;
 
         function createDots() {
+            if (!bannerDots) return;
             bannerDots.innerHTML = '';
             for (let i = 0; i < slideCount; i++) {
                 const dot = document.createElement('div');
                 dot.classList.add('banner-dot');
                 if (i === currentIndex) dot.classList.add('active');
-                dot.addEventListener('click', () => goToSlide(i));
+                dot.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    stopAutoSlide();
+                    goToSlide(i);
+                    startAutoSlide();
+                });
                 bannerDots.appendChild(dot);
             }
         }
@@ -2031,54 +2086,64 @@
             if (index < 0) index = 0;
             if (index >= slideCount) index = slideCount - 1;
             currentIndex = index;
-            bannerSlides.style.transform = `translateX(-${currentIndex * 100}%)`;
+            if (bannerSlides) {
+                bannerSlides.style.transform = `translateX(-${currentIndex * 100}%)`;
+                bannerSlides.style.transition = 'transform 0.5s ease-in-out';
+            }
             updateDots();
         }
 
         function nextSlide() {
             currentIndex = (currentIndex + 1) % slideCount;
-            bannerSlides.style.transform = `translateX(-${currentIndex * 100}%)`;
-            updateDots();
+            goToSlide(currentIndex);
         }
 
         function prevSlide() {
             currentIndex = (currentIndex - 1 + slideCount) % slideCount;
-            bannerSlides.style.transform = `translateX(-${currentIndex * 100}%)`;
-            updateDots();
+            goToSlide(currentIndex);
         }
 
         function startAutoSlide() {
+            if (autoInterval) clearInterval(autoInterval);
             autoInterval = setInterval(nextSlide, 5000);
         }
 
         function stopAutoSlide() {
-            clearInterval(autoInterval);
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
         }
 
-        bannerContainer.addEventListener('click', (e) => {
-            const rect = bannerContainer.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const containerWidth = rect.width;
-            if (clickX < containerWidth / 3) {
+        // Event listeners untuk tombol navigasi
+        if (bannerPrev) {
+            bannerPrev.addEventListener('click', (e) => {
+                e.stopPropagation();
                 stopAutoSlide();
                 prevSlide();
                 startAutoSlide();
-            } else if (clickX > (containerWidth * 2 / 3)) {
+            });
+        }
+
+        if (bannerNext) {
+            bannerNext.addEventListener('click', (e) => {
+                e.stopPropagation();
                 stopAutoSlide();
                 nextSlide();
                 startAutoSlide();
-            }
-        });
+            });
+        }
 
-        bannerContainer.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            stopAutoSlide();
-        });
-
-        bannerContainer.addEventListener('touchend', (e) => {
-            if (startX) {
-                currentX = e.changedTouches[0].clientX;
-                const diff = startX - currentX;
+        // Touch events untuk swipe di HP
+        if (bannerContainer) {
+            bannerContainer.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+                stopAutoSlide();
+            }, { passive: true });
+            
+            bannerContainer.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                const diff = touchStartX - touchEndX;
                 if (Math.abs(diff) > 50) {
                     if (diff > 0) {
                         nextSlide();
@@ -2087,15 +2152,26 @@
                     }
                 }
                 startAutoSlide();
-            }
-        });
+            });
+        }
 
-        bannerContainer.addEventListener('mouseenter', stopAutoSlide);
-        bannerContainer.addEventListener('mouseleave', startAutoSlide);
+        // Hover events
+        if (bannerContainer) {
+            bannerContainer.addEventListener('mouseenter', stopAutoSlide);
+            bannerContainer.addEventListener('mouseleave', startAutoSlide);
+        }
 
+        // Inisialisasi
         createDots();
         startAutoSlide();
 
+        // Resize handler untuk menjaga konsistensi
+        window.addEventListener('resize', () => {
+            if (bannerSlides) {
+                goToSlide(currentIndex);
+            }
+        });
+        
         // ========== HAMBURGER MENU ==========
         const menuToggle = document.getElementById('menuToggle');
         const navLinksHp = document.getElementById('navLinks');
