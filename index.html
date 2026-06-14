@@ -804,7 +804,7 @@
             }
         }
 
-        /* ========== BANNER SLIDER (CAROUSEL) - TIDAK TERPOTONG ========== */
+        /* ========== BANNER SLIDER (CAROUSEL) - UKURAN IDEAL ========== */
         .banner-section {
             margin-top: 80px;
             position: relative;
@@ -815,6 +815,7 @@
         .banner-container {
             position: relative;
             width: 100%;
+            max-height: 450px;
             overflow: hidden;
             cursor: pointer;
         }
@@ -833,6 +834,8 @@
         .banner-slide img {
             width: 100%;
             height: auto;
+            max-height: 450px;
+            object-fit: cover;
             display: block;
         }
 
@@ -885,23 +888,47 @@
             border-radius: 10px;
         }
 
+        /* Tablet */
+        @media (max-width: 1024px) {
+            .banner-container {
+                max-height: 350px;
+            }
+            .banner-slide img {
+                max-height: 350px;
+            }
+        }
+
+        /* HP */
         @media (max-width: 768px) {
             .banner-section {
                 margin-top: 70px;
             }
-            
+            .banner-container {
+                max-height: 280px;
+            }
+            .banner-slide img {
+                max-height: 280px;
+            }
             .banner-dots {
                 bottom: 10px;
                 gap: 8px;
             }
-            
             .banner-dot {
                 width: 8px;
                 height: 8px;
             }
-            
             .banner-dot.active {
                 width: 20px;
+            }
+        }
+
+        /* HP kecil */
+        @media (max-width: 480px) {
+            .banner-container {
+                max-height: 220px;
+            }
+            .banner-slide img {
+                max-height: 220px;
             }
         }
 
@@ -1452,7 +1479,7 @@
         </div>
     </nav>
 
-    <!-- ========== BANNER SLIDER (CAROUSEL) - TIDAK TERPOTONG ========== -->
+    <!-- ========== BANNER SLIDER (CAROUSEL) ========== -->
     <div class="banner-section">
         <div class="banner-container" id="bannerContainer">
             <div class="banner-slides" id="bannerSlides">
