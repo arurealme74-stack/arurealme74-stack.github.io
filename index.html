@@ -964,7 +964,7 @@
             }
         }
 
-        /* ========== HERO SECTION (ABOUT) ========== */
+    /* ========== HERO SECTION (ELEGAN) ========== */
 .hero-section {
     padding: 8rem 5% 4rem;
     background: #fefcf8;
@@ -974,7 +974,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 3rem;
+    gap: 4rem;
     flex-wrap: wrap;
     max-width: 1200px;
     margin: 0 auto;
@@ -982,69 +982,50 @@
 
 .hero-text {
     flex: 1;
-    min-width: 280px;
+    min-width: 300px;
 }
 
 .hero-title {
     font-family: 'Playfair Display', serif;
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: 700;
     color: #2a2a2a;
-    margin-bottom: 0.5rem;
-}
-
-.hero-tagline {
-    font-size: 0.9rem;
-    letter-spacing: 4px;
-    color: #b87c4e;
-    text-transform: uppercase;
+    letter-spacing: 2px;
     margin-bottom: 1.5rem;
 }
 
-.hero-quote {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    font-weight: 600;
-    color: #2a2a2a;
-    margin-bottom: 1rem;
-    line-height: 1.2;
+.hero-divider {
+    width: 60px;
+    height: 2px;
+    background: #b87c4e;
+    margin-bottom: 1.5rem;
 }
 
 .hero-description {
-    color: #666;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    font-size: 0.95rem;
-}
-
-.hero-features {
-    display: flex;
-    gap: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #5a5a5a;
     margin-bottom: 2rem;
-    flex-wrap: wrap;
-}
-
-.hero-features span {
-    font-size: 0.85rem;
-    color: #b87c4e;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .hero-shop-btn {
-    padding: 0.8rem 2rem;
-    background: #b87c4e;
-    color: white;
-    border: none;
+    padding: 0.9rem 2.2rem;
+    background: transparent;
+    color: #2a2a2a;
+    border: 1.5px solid #b87c4e;
     border-radius: 40px;
     cursor: pointer;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 0.9rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
     transition: all 0.3s;
 }
 
 .hero-shop-btn:hover {
-    background: #9a663e;
+    background: #b87c4e;
+    color: white;
     transform: translateY(-2px);
 }
 
@@ -1058,8 +1039,7 @@
     width: 100%;
     max-width: 450px;
     border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    object-fit: cover;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
 }
 
 /* Responsive */
@@ -1071,18 +1051,16 @@
     .hero-container {
         flex-direction: column;
         text-align: center;
+        gap: 2rem;
     }
     
     .hero-title {
         font-size: 2.5rem;
     }
     
-    .hero-quote {
-        font-size: 1.5rem;
-    }
-    
-    .hero-features {
-        justify-content: center;
+    .hero-divider {
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .hero-image img {
@@ -1095,14 +1073,8 @@
         font-size: 2rem;
     }
     
-    .hero-quote {
-        font-size: 1.2rem;
-    }
-    
-    .hero-features {
-        gap: 1rem;
-        flex-direction: column;
-        align-items: center;
+    .hero-description {
+        font-size: 0.9rem;
     }
 }
         /* ========== PRODUCT SECTION ========== */
@@ -1659,22 +1631,16 @@
     <div class="hero-container">
         <div class="hero-text">
             <h1 class="hero-title">ARVELUNA</h1>
-            <p class="hero-tagline">handmade with love</p>
-            <p class="hero-quote">self care starts here</p>
-            <p class="hero-description">handcrafted candles made with natural ingredients to bring warmth, calm, and light into your everyday</p>
-            <div class="hero-features">
-                <span>🌿 natural ingredients</span>
-                <span>🤲 handmade with love</span>
-                <span>🌱 slow living everyday</span>
-            </div>
-            <button class="hero-shop-btn" onclick="scrollToProducts()">SHOP NOW →</button>
+            <div class="hero-divider"></div>
+            <p class="hero-description">We craft artisanal candles from natural soy wax and essential oils, designed to transform your space into a sanctuary of calm. Each piece is hand-poured with intention, bringing warmth and serenity to your everyday rituals.</p>
+            <button class="hero-shop-btn" onclick="scrollToProducts()">Explore Collection →</button>
         </div>
         <div class="hero-image">
             <img src="images/about1.jpeg" alt="Arveluna Candle">
         </div>
     </div>
 </section>
-       <section class="product-section">
+        <section class="product-section">
     <h2 class="section-title">Our Collections</h2>
     <p class="section-subtitle">Discover thoughtfully crafted pieces for your ritual</p>
     <div class="product-grid">
