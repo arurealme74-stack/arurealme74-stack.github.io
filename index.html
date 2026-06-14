@@ -78,6 +78,54 @@
             }
         }
 
+        // ========== CART FUNCTIONS (localStorage) ==========
+        function getCart() {
+            const cart = localStorage.getItem('arvelunaCart');
+            return cart ? JSON.parse(cart) : [];
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem('arvelunaCart', JSON.stringify(cart));
+        }
+
+        function updateCartBadge() {
+            const cart = getCart();
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const badge = document.getElementById('cartBadge');
+            if (badge) {
+                if (totalItems > 0) {
+                    badge.textContent = totalItems > 99 ? '99+' : totalItems;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        window.addToCart = function(productName, price, image) {
+            const cart = getCart();
+            const existingItem = cart.find(item => item.name === productName);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    name: productName,
+                    price: price,
+                    image: image,
+                    quantity: 1
+                });
+            }
+            
+            saveCart(cart);
+            updateCartBadge();
+            alert(`🛒 ${productName} ditambahkan ke keranjang!`);
+        }
+
+        window.goToCart = function() {
+            window.location.href = 'cart.html';
+        }
+
         // Toggle Views
         window.showHomeView = function() {
             document.getElementById('homeView').style.display = 'block';
@@ -103,41 +151,6 @@
                     productSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }, 100);
-        }
-
-        // ========== CART FUNCTIONS (localStorage) ==========
-        function getCart() {
-            const cart = localStorage.getItem('arvelunaCart');
-            return cart ? JSON.parse(cart) : [];
-        }
-
-        function saveCart(cart) {
-            localStorage.setItem('arvelunaCart', JSON.stringify(cart));
-        }
-
-        window.addToCart = function(productName, price, image) {
-            const cart = getCart();
-            const existingItem = cart.find(item => item.name === productName);
-            
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({
-                    name: productName,
-                    price: price,
-                    image: image,
-                    quantity: 1
-                });
-            }
-            
-            saveCart(cart);
-            
-            // Tampilkan notifikasi
-            alert(`🛒 ${productName} ditambahkan ke keranjang!`);
-        }
-
-        window.goToCart = function() {
-            window.location.href = 'cart.html';
         }
 
         // ========== PRODUK DATA ==========
@@ -643,6 +656,8 @@
                     }
                 });
             }
+            
+            updateCartBadge();
         });
 
         const style = document.createElement('style');
@@ -766,6 +781,30 @@
                 color: #ffd700;
                 font-size: 1.4rem;
             }
+
+            /* ========== CART BADGE ========== */
+            .cart-icon-wrapper {
+                position: relative;
+                display: inline-block;
+            }
+            .cart-badge {
+                position: absolute;
+                top: -8px;
+                right: -12px;
+                background: #d32f2f;
+                color: white;
+                font-size: 0.65rem;
+                font-weight: 600;
+                min-width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 4px;
+                font-family: 'Inter', sans-serif;
+                box-shadow: 0 0 0 2px white;
+            }
         `;
         document.head.appendChild(style);
     </script>
@@ -852,16 +891,6 @@
             display: flex;
             gap: 1.2rem;
             align-items: center;
-        }
-
-        .nav-icons span {
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: color 0.3s;
-        }
-
-        .nav-icons span:hover {
-            color: #b87c4e;
         }
 
         @media (max-width: 768px) {
@@ -998,12 +1027,6 @@
             }
             .banner-dot.active {
                 width: 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .banner-slide img {
-                max-height: 40vh;
             }
         }
 
@@ -1776,7 +1799,10 @@
         </ul>
         <div class="nav-icons">
             <span id="accountIcon">👤</span>
-            <span id="cartIcon" onclick="goToCart()">🛒</span>
+            <div class="cart-icon-wrapper">
+                <span id="cartIcon" onclick="goToCart()">🛒</span>
+                <span id="cartBadge" class="cart-badge" style="display: none;">0</span>
+            </div>
         </div>
     </nav>
 
