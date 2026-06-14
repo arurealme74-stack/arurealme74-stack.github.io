@@ -385,6 +385,213 @@
                 alert('Gagal menghapus alamat: ' + error.message);
             }
         }
+		
+// ========== FUNGSI SAVE ORDER KE FIREBASE ==========
+async function saveOrderToFirebase(orderData) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('User tidak login');
+    
+    const ordersRef = ref(db, `users/${user.uid}/orders`);
+    const newOrderRef = push(ordersRef);
+    
+    await set(newOrderRef, {
+        ...orderData,
+        orderId: newOrderRef.key,
+        userId: user.uid,
+        userEmail: user.email,
+        userName: user.displayName || user.email.split('@')[0],
+        status: 'pending', // pending, processing, shipped, delivered, cancelled
+        createdAt: new Date().toISOString()
+    });
+    
+    return newOrderRef.key;
+}
+
+// ========== FUNGSI GET ALAMAT UTAMA ==========
+async function getPrimaryAddress() {
+    const user = auth.currentUser;
+    if (!user) return null;
+    
+    const addressesRef = ref(db, `users/${user.uid}/addresses`);
+    const snapshot = await get(addressesRef);
+    
+    if (snapshot.exists()) {
+        const addresses = [];
+        snapshot.forEach((childSnapshot) => {
+            addresses.push({ id: childSnapshot.key, ...childSnapshot.val() });
+        });
+        // Ambil alamat terbaru atau yang berlabel 'Rumah' sebagai prioritas
+        const primary = addresses.find(addr => addr.label === 'Rumah') || addresses[0];
+        return primary;
+    }
+    return null;
+}
+
+// ========== FUNGSI CHECKOUT BARU ==========
+window.checkoutWithOrder = async function() {
+    const cart = getCart();
+    
+    // Cek apakah user sudah login
+    const user = auth.currentUser;
+    if (!user) {
+        alert('⚠️ Silakan login terlebih dahulu untuk melanjutkan checkout!');
+        openModal();
+        return;
+    }
+    
+    // Cek apakah cart kosong
+    if (cart.length === 0) {
+        alert('🛒 Keranjang Anda masih kosong!');
+        return;
+    }
+    
+    // Cek apakah user sudah verifikasi email (kecuali Google user)
+    const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
+    if (!user.emailVerified && !isGoogleUser) {
+        alert('⚠️ Email Anda belum diverifikasi! Silakan cek inbox email Anda.');
+        return;
+    }
+    
+    // Ambil alamat user
+    const address = await getPrimaryAddress();
+    if (!address) {
+        const confirm = confirm('Anda belum memiliki alamat pengiriman.\n\nApakah Anda ingin mengisi alamat sekarang?');
+        if (confirm) {
+            showProfileView();
+            document.getElementById('addressName').scrollIntoView({ behavior: 'smooth' });
+        }
+        return;
+    }
+    
+    // Hitung total dan diskon
+    let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    let total = subtotal;
+    let discountPercent = 0;
+    let discountAmount = 0;
+    
+    // Cek promo yang sudah diapply (dari localStorage)
+    const appliedPromo = localStorage.getItem('arvelunaPromo');
+    if (appliedPromo) {
+        const promo = JSON.parse(appliedPromo);
+        if (promo.code === 'ARVELUNA10') {
+            discountPercent = 10;
+        } else if (promo.code === 'ARVELUNA20') {
+            discountPercent = 20;
+        }
+        discountAmount = subtotal * discountPercent / 100;
+        total = subtotal - discountAmount;
+    }
+    
+    // Tampilkan konfirmasi checkout
+    let itemList = '';
+    cart.forEach(item => {
+        itemList += `\n- ${item.name} x${item.quantity} = Rp ${(item.price * item.quantity).toLocaleString('id-ID')},00`;
+    });
+    
+    const confirmMessage = `🚀 KONFIRMASI CHECKOUT 🚀
+    
+📦 RINGKASAN PESANAN:
+${itemList}
+
+─────────────────────
+📝 ALAMAT PENGIRIMAN:
+${address.label || 'Alamat'}
+${address.name}
+${address.street}${address.rtRw ? ', RT/RW ' + address.rtRw : ''}
+${address.village}, ${address.district}
+${address.city}, ${address.province} - ${address.postal}
+Telp: ${address.phone}
+
+─────────────────────
+💰 RINCIAN PEMBAYARAN:
+Subtotal: Rp ${subtotal.toLocaleString('id-ID')},00
+${discountPercent > 0 ? `Diskon ${discountPercent}%: -Rp ${discountAmount.toLocaleString('id-ID')},00\n` : ''}Total: Rp ${total.toLocaleString('id-ID')},00
+
+─────────────────────
+✅ Konfirmasi pesanan?`;
+    
+    const isConfirmed = confirm(confirmMessage);
+    
+    if (!isConfirmed) return;
+    
+    // Loading state
+    const checkoutBtn = document.querySelector('.btn-checkout');
+    const originalText = checkoutBtn?.innerHTML;
+    if (checkoutBtn) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.innerHTML = '⏳ Memproses pesanan...';
+    }
+    
+    try {
+        // Siapkan data pesanan
+        const orderData = {
+            items: cart.map(item => ({
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                image: item.image,
+                total: item.price * item.quantity
+            })),
+            address: {
+                label: address.label,
+                name: address.name,
+                phone: address.phone,
+                street: address.street,
+                rtRw: address.rtRw || '',
+                village: address.village,
+                district: address.district,
+                city: address.city,
+                province: address.province,
+                postal: address.postal
+            },
+            subtotal: subtotal,
+            discountPercent: discountPercent,
+            discountAmount: discountAmount,
+            total: total,
+            promoCode: appliedPromo ? JSON.parse(appliedPromo).code : null,
+            paymentMethod: 'transfer_bank', // default, nanti bisa diupdate
+            itemsCount: cart.reduce((sum, item) => sum + item.quantity, 0)
+        };
+        
+        // Simpan ke Firebase
+        const orderId = await saveOrderToFirebase(orderData);
+        
+        // Hapus cart setelah checkout sukses
+        localStorage.removeItem('arvelunaCart');
+        localStorage.removeItem('arvelunaPromo');
+        
+        // Update badge cart
+        updateCartBadge();
+        
+        // Tampilkan pesan sukses
+        alert(`✅ PESANAN BERHASIL! 🎉
+        
+Order ID: ${orderId}
+Total: Rp ${total.toLocaleString('id-ID')},00
+
+Pesanan Anda akan segera diproses.
+Cek status pesanan di menu "📦 Pesanan Saya" pada profil Anda.
+
+Terima kasih telah berbelanja di Arveluna! ❤️`);
+        
+        // Refresh tampilan cart
+        if (typeof renderCart === 'function') {
+            renderCart();
+        }
+        
+        // Arahkan ke home
+        showHomeView();
+        
+    } catch (error) {
+        console.error('Checkout error:', error);
+        alert('❌ Gagal memproses pesanan! Silakan coba lagi.\n\nError: ' + error.message);
+    } finally {
+        if (checkoutBtn) {
+            checkoutBtn.disabled = false;
+            checkoutBtn.innerHTML = originalText || 'Checkout →';
+        }
+    }
+}
 
         function updateUIForLoggedInUser(user) {
             const displayName = user.displayName || user.email.split('@')[0];
