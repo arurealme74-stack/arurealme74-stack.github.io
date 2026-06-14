@@ -656,8 +656,33 @@
                 `;
             }).join('');
             
+            // Cek promo dari localStorage
+            const savedPromo = localStorage.getItem('arvelunaPromo');
+            let total = subtotal;
+            
+            if (savedPromo) {
+                const promo = JSON.parse(savedPromo);
+                if (promo.code === 'ARVELUNA10' || promo.code === 'ARVELUNA20') {
+                    const discountPercent = promo.code === 'ARVELUNA10' ? 10 : 20;
+                    const discountAmount = subtotal * discountPercent / 100;
+                    total = subtotal - discountAmount;
+                    
+                    const discountRow = document.getElementById('discountRow');
+                    if (!discountRow) {
+                        const summaryCard = document.querySelector('.summary-card');
+                        const summaryTotal = document.querySelector('.summary-total');
+                        const newRow = document.createElement('div');
+                        newRow.id = 'discountRow';
+                        newRow.className = 'summary-row';
+                        newRow.style.color = '#2e7d32';
+                        newRow.innerHTML = `<span>Diskon ${discountPercent}%</span><span>- ${formatPrice(discountAmount)}</span>`;
+                        summaryTotal.parentNode.insertBefore(newRow, summaryTotal);
+                    }
+                }
+            }
+            
             subtotalSpan.textContent = formatPrice(subtotal);
-            totalSpan.textContent = formatPrice(subtotal);
+            totalSpan.textContent = formatPrice(total);
             updateCartBadge();
         }
         
@@ -680,39 +705,7 @@
             renderCart();
         }
         
-        window.checkout = function() {
-            const cart = getCart();
-            if (cart.length === 0) {
-                alert('🛒 Keranjang Anda masih kosong!');
-                return;
-            }
-            
-            let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            let total = subtotal;
-            
-            const discountRow = document.getElementById('discountRow');
-            let discountPercent = 0;
-            if (discountRow) {
-                const discountText = discountRow.querySelector('span:first-child').innerText;
-                const match = discountText.match(/(\d+)%/);
-                if (match) discountPercent = parseInt(match[1]);
-                total = subtotal * (100 - discountPercent) / 100;
-            }
-            
-            let itemList = '';
-            cart.forEach(item => {
-                itemList += `\n- ${item.name} x${item.quantity} = Rp ${(item.price * item.quantity).toLocaleString('id-ID')},00`;
-            });
-            
-            const confirmCheckout = confirm(
-                `🚀 CHECKOUT\n\nRingkasan Pesanan:${itemList}\n\n────────────────\n${discountPercent > 0 ? `Subtotal: Rp ${subtotal.toLocaleString('id-ID')},00\nDiskon ${discountPercent}%: -Rp ${(subtotal * discountPercent / 100).toLocaleString('id-ID')},00\n` : ''}Total: Rp ${total.toLocaleString('id-ID')},00\n\nLanjutkan ke pembayaran?`
-            );
-            
-            if (confirmCheckout) {
-                alert(`✅ Pesanan Anda telah diterima!\n\nTotal: Rp ${total.toLocaleString('id-ID')},00\n\nTerima kasih telah berbelanja di Arveluna!\n\nPesanan akan segera diproses.`);
-            }
-        }
-        
+        // ========== FUNGSI APPLY PROMO ==========
         window.applyPromo = function() {
             const code = document.getElementById('promoCode').value.trim().toUpperCase();
             const cart = getCart();
@@ -728,11 +721,14 @@
             if (code === 'ARVELUNA10') {
                 discount = 10;
                 message = '✅ Diskon 10% berhasil diterapkan!';
+                localStorage.setItem('arvelunaPromo', JSON.stringify({ code: code, discount: discount }));
             } else if (code === 'ARVELUNA20') {
                 discount = 20;
                 message = '✅ Diskon 20% berhasil diterapkan!';
+                localStorage.setItem('arvelunaPromo', JSON.stringify({ code: code, discount: discount }));
             } else if (code === 'FREESHIPPING') {
                 message = '✅ Gratis ongkir berhasil diterapkan! (akan dihitung saat checkout)';
+                localStorage.setItem('arvelunaPromo', JSON.stringify({ code: code, discount: 0, freeshipping: true }));
             } else if (code === 'ARVELUNAB2G1') {
                 message = '✅ Promo Buy 2 Get 1! Tambahkan 3 produk ke keranjang, yang termurah GRATIS.';
             } else if (code) {
@@ -767,7 +763,51 @@
             }
         }
         
-        // Render cart saat halaman dimuat
+        // ========== FUNGSI CHECKOUT ==========
+        window.checkout = function() {
+            const cart = getCart();
+            if (cart.length === 0) {
+                alert('🛒 Keranjang Anda masih kosong!');
+                return;
+            }
+            
+            let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            let total = subtotal;
+            
+            // Cek promo dari localStorage
+            const savedPromo = localStorage.getItem('arvelunaPromo');
+            let discountPercent = 0;
+            
+            if (savedPromo) {
+                const promo = JSON.parse(savedPromo);
+                if (promo.code === 'ARVELUNA10') {
+                    discountPercent = 10;
+                } else if (promo.code === 'ARVELUNA20') {
+                    discountPercent = 20;
+                }
+                total = subtotal * (100 - discountPercent) / 100;
+            }
+            
+            let itemList = '';
+            cart.forEach(item => {
+                itemList += `\n- ${item.name} x${item.quantity} = Rp ${(item.price * item.quantity).toLocaleString('id-ID')},00`;
+            });
+            
+            const confirmCheckout = confirm(
+                `🚀 CHECKOUT\n\nRingkasan Pesanan:${itemList}\n\n────────────────\n${discountPercent > 0 ? `Subtotal: Rp ${subtotal.toLocaleString('id-ID')},00\nDiskon ${discountPercent}%: -Rp ${(subtotal * discountPercent / 100).toLocaleString('id-ID')},00\n` : ''}Total: Rp ${total.toLocaleString('id-ID')},00\n\nLanjutkan ke pembayaran?`
+            );
+            
+            if (confirmCheckout) {
+                alert(`✅ Pesanan Anda telah diterima!\n\nTotal: Rp ${total.toLocaleString('id-ID')},00\n\nTerima kasih telah berbelanja di Arveluna!\n\nPesanan akan segera diproses.`);
+                // Hapus promo setelah checkout
+                localStorage.removeItem('arvelunaPromo');
+                // Kosongkan keranjang
+                localStorage.removeItem('arvelunaCart');
+                renderCart();
+            }
+        }
+        
+        // ========== RENDER CART SAAT HALAMAN DIMUAT ==========
         renderCart();
     </script>
 </body>
