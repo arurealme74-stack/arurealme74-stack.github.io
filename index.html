@@ -805,6 +805,7 @@
         }
 
         /* ========== BANNER SLIDER (CAROUSEL) - TANPA TERPOTONG ========== */
+/* ========== BANNER SLIDER (CAROUSEL) - FULL LEBAR ========== */
 .banner-section {
     margin-top: 80px;
     position: relative;
@@ -815,7 +816,7 @@
 .banner-container {
     position: relative;
     width: 100%;
-    background: #1a1a1a;
+    background: #f5efe6;
     overflow: hidden;
     cursor: pointer;
 }
@@ -829,17 +830,15 @@
 .banner-slide {
     min-width: 100%;
     flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #1a1a1a;
+    position: relative;
 }
 
 .banner-slide img {
     width: 100%;
     height: auto;
-    max-height: 80vh;
-    object-fit: contain;
+    max-height: 70vh;
+    object-fit: cover;
+    object-position: center;
     display: block;
 }
 
@@ -881,7 +880,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.5);
     cursor: pointer;
     transition: all 0.3s;
 }
