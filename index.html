@@ -51,7 +51,6 @@
 
         // DOM Elements
         const accountIcon = document.getElementById('accountIcon');
-        const cartIcon = document.getElementById('cartIcon');
         
         // Helper Functions
         function showError(elementId, message) {
@@ -83,28 +82,19 @@
         window.showHomeView = function() {
             document.getElementById('homeView').style.display = 'block';
             document.getElementById('profileView').style.display = 'none';
-            document.getElementById('cartView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         window.showProfileView = function() {
             document.getElementById('homeView').style.display = 'none';
             document.getElementById('profileView').style.display = 'block';
-            document.getElementById('cartView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
             loadUserProfile();
         }
 
-        window.showCartView = function() {
-            document.getElementById('homeView').style.display = 'none';
-            document.getElementById('profileView').style.display = 'none';
-            document.getElementById('cartView').style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
         window.backToHome = function() { showHomeView(); }
 
-        // ========== SCROLL KE BAGIAN PRODUK ==========
+        // Scroll ke produk
         window.scrollToProducts = function() {
             showHomeView();
             setTimeout(() => {
@@ -113,6 +103,41 @@
                     productSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }, 100);
+        }
+
+        // ========== CART FUNCTIONS (localStorage) ==========
+        function getCart() {
+            const cart = localStorage.getItem('arvelunaCart');
+            return cart ? JSON.parse(cart) : [];
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem('arvelunaCart', JSON.stringify(cart));
+        }
+
+        window.addToCart = function(productName, price, image) {
+            const cart = getCart();
+            const existingItem = cart.find(item => item.name === productName);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    name: productName,
+                    price: price,
+                    image: image,
+                    quantity: 1
+                });
+            }
+            
+            saveCart(cart);
+            
+            // Tampilkan notifikasi
+            alert(`🛒 ${productName} ditambahkan ke keranjang!`);
+        }
+
+        window.goToCart = function() {
+            window.location.href = 'cart.html';
         }
 
         // ========== PRODUK DATA ==========
@@ -183,7 +208,7 @@
             document.getElementById('modalDetails').textContent = product.details;
             document.getElementById('modalIngredients').textContent = product.ingredients;
             
-            window.currentProduct = { name: product.name, price: product.price };
+            window.currentProduct = { name: product.name, price: product.price, image: product.image };
             
             document.getElementById('productModal').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -196,7 +221,7 @@
 
         window.addToCartFromModal = function() {
             if (window.currentProduct) {
-                addToCart(window.currentProduct.name, window.currentProduct.price);
+                addToCart(window.currentProduct.name, window.currentProduct.price, window.currentProduct.image);
                 closeProductModal();
             }
         }
@@ -218,7 +243,6 @@
             };
         }
 
-        // Database Functions
         async function saveAddressToRTDB(address) {
             const user = auth.currentUser;
             if (!user) throw new Error('User tidak login');
@@ -249,7 +273,6 @@
             await remove(addressRef);
         }
 
-        // Load Profile
         async function loadUserProfile() {
             const user = auth.currentUser;
             if (!user) return;
@@ -350,7 +373,6 @@
             }
         }
 
-        // ========== UPDATE UI LOGIN DENGAN VOUCHER ==========
         function updateUIForLoggedInUser(user) {
             const displayName = user.displayName || user.email.split('@')[0];
             const existingDropdown = document.querySelector('.user-dropdown');
@@ -384,7 +406,6 @@
             if (dropdown) dropdown.remove();
         }
 
-        // Modal Functions
         window.openModal = function() {
             document.getElementById('authModal').classList.add('active');
             showLogin();
@@ -409,7 +430,6 @@
             clearErrors();
         }
 
-        // Auth Functions
         window.handleGoogleLogin = async function() {
             try {
                 const result = await signInWithPopup(auth, googleProvider);
@@ -501,9 +521,7 @@
         }
 
         window.viewOrders = function() { alert('📦 Fitur pesanan akan segera hadir!'); }
-        window.addToCart = function(productName, price) { alert(`🛒 ${productName} ditambahkan ke keranjang!`); }
 
-        // ========== VOUCHER POPUP ==========
         window.showVoucher = function() {
             let voucherModal = document.getElementById('voucherModal');
             if (!voucherModal) {
@@ -578,7 +596,6 @@
             document.getElementById('voucherSeconds').textContent = String(seconds).padStart(2, '0');
         }
 
-        // Copy voucher code
         window.copyVoucherCode = function() {
             const code = 'ARVELUNAB2G1';
             navigator.clipboard.writeText(code).then(() => {
@@ -588,7 +605,6 @@
             });
         }
 
-        // Monitor Auth
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const isGoogleUser = user.providerData[0]?.providerId === 'google.com';
@@ -619,7 +635,6 @@
                 defaultLabelBtn.classList.add('active');
             }
             
-            // Tutup modal produk saat klik di luar
             const productModal = document.getElementById('productModal');
             if (productModal) {
                 productModal.addEventListener('click', function(e) {
@@ -660,7 +675,6 @@
                 max-width: 450px;
                 text-align: center;
             }
-            
             .voucher-card-modal {
                 background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
                 border-radius: 24px;
@@ -669,7 +683,6 @@
                 overflow: hidden;
                 border: 1px solid rgba(184, 124, 78, 0.3);
             }
-            
             .voucher-card-modal::before {
                 content: '';
                 position: absolute;
@@ -680,7 +693,6 @@
                 background: radial-gradient(circle, rgba(184,124,78,0.1) 0%, transparent 70%);
                 pointer-events: none;
             }
-            
             .voucher-badge-modal {
                 display: inline-block;
                 background: #b87c4e;
@@ -693,13 +705,11 @@
                 margin-bottom: 1rem;
                 animation: pulse 2s infinite;
             }
-            
             @keyframes pulse {
                 0% { transform: scale(1); opacity: 1; }
                 50% { transform: scale(1.05); opacity: 0.9; }
                 100% { transform: scale(1); opacity: 1; }
             }
-            
             .voucher-icon-modal {
                 font-size: 3.5rem;
                 background: rgba(184,124,78,0.2);
@@ -711,25 +721,21 @@
                 justify-content: center;
                 margin: 0 auto 1rem;
             }
-            
             .voucher-card-modal h3 {
                 font-family: 'Playfair Display', serif;
                 font-size: 1.8rem;
                 color: white;
                 margin-bottom: 0.5rem;
             }
-            
             .voucher-card-modal h3 span {
                 color: #ffd700;
                 font-weight: 800;
             }
-            
             .voucher-card-modal p {
                 color: #ccc;
                 font-size: 0.85rem;
                 margin-bottom: 1.5rem;
             }
-            
             .voucher-code-modal {
                 display: flex;
                 align-items: center;
@@ -738,28 +744,24 @@
                 flex-wrap: wrap;
                 margin-bottom: 1.5rem;
             }
-            
             .voucher-timer-modal {
                 text-align: center;
                 background: rgba(0,0,0,0.5);
                 padding: 0.8rem;
                 border-radius: 40px;
             }
-            
             .voucher-timer-modal .timer-title {
                 color: #b87c4e;
                 font-size: 0.7rem;
                 letter-spacing: 1px;
                 margin-bottom: 0.3rem;
             }
-            
             .voucher-timer-modal .timer-display {
                 font-size: 1.2rem;
                 font-weight: 700;
                 color: white;
                 font-family: monospace;
             }
-            
             .voucher-timer-modal .timer-display span {
                 color: #ffd700;
                 font-size: 1.4rem;
@@ -895,7 +897,7 @@
             }
         }
 
-        /* ========== BANNER SLIDER (CAROUSEL) ========== */
+        /* ========== BANNER SLIDER ========== */
         .banner-section {
             margin-top: 80px;
             position: relative;
@@ -1047,7 +1049,6 @@
             line-height: 1.8;
             color: #5a5a5a;
             margin-bottom: 2rem;
-            font-weight: 400;
         }
 
         .hero-shop-btn {
@@ -1101,15 +1102,6 @@
             }
             .hero-image img {
                 max-width: 300px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero-title {
-                font-size: 2rem;
-            }
-            .hero-description {
-                font-size: 0.9rem;
             }
         }
 
@@ -1231,7 +1223,6 @@
             cursor: pointer;
             color: #999;
             z-index: 10;
-            transition: color 0.3s;
         }
 
         .product-modal-close:hover {
@@ -1306,8 +1297,6 @@
         .product-modal-details p {
             font-size: 0.85rem;
             color: #666;
-            margin-bottom: 1rem;
-            line-height: 1.5;
         }
 
         .product-modal-notes {
@@ -1315,17 +1304,6 @@
             padding: 1rem;
             border-radius: 12px;
             margin-bottom: 1.5rem;
-        }
-
-        .product-modal-notes h4 {
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .product-modal-notes p {
-            font-size: 0.8rem;
-            color: #666;
         }
 
         .product-modal-buttons {
@@ -1343,7 +1321,6 @@
             border-radius: 40px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s;
         }
 
         .btn-modal-add:hover {
@@ -1359,7 +1336,6 @@
             border-radius: 40px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s;
         }
 
         .btn-modal-close:hover {
@@ -1368,14 +1344,8 @@
         }
 
         @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 768px) {
@@ -1463,11 +1433,6 @@
             padding: 0.9rem 1.2rem;
             border: none;
             border-radius: 40px;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .newsletter-form input:focus {
-            outline: none;
         }
 
         .btn-dark {
@@ -1499,7 +1464,6 @@
             color: white;
             margin-bottom: 1rem;
             font-size: 0.9rem;
-            letter-spacing: 1px;
         }
 
         .footer-col p, .footer-col a {
@@ -1524,7 +1488,6 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
         .social-icon:hover {
@@ -1599,12 +1562,6 @@
             padding: 0.8rem 1rem;
             border: 1px solid #ddd;
             border-radius: 12px;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #b87c4e;
         }
 
         .modal-btn {
@@ -1649,7 +1606,6 @@
             cursor: pointer;
         }
 
-        /* User Dropdown */
         .user-menu {
             position: relative;
             display: inline-block;
@@ -1669,7 +1625,6 @@
         }
 
         .user-dropdown.show { display: block; }
-
         .user-dropdown a {
             display: block;
             padding: 0.8rem 1rem;
@@ -1678,17 +1633,14 @@
             font-size: 0.8rem;
             cursor: pointer;
         }
-
         .user-dropdown a:hover {
             background: #f5efe6;
             color: #b87c4e;
         }
-
         .user-dropdown hr {
             margin: 0;
             border-top: 1px solid #eee;
         }
-
         .user-name {
             padding: 0.8rem 1rem;
             color: #b87c4e;
@@ -1696,7 +1648,6 @@
             border-bottom: 1px solid #eee;
         }
 
-        /* Profile View */
         .profile-container {
             max-width: 800px;
             margin: 100px auto 2rem;
@@ -1758,8 +1709,6 @@
         .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.8rem; }
         .form-group .required { color: #d32f2f; }
         .form-group input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #ddd; border-radius: 12px; }
-        .form-group input:focus { outline: none; border-color: #b87c4e; }
-
         .label-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
         .label-btn {
             padding: 0.5rem 1rem;
@@ -1827,11 +1776,11 @@
         </ul>
         <div class="nav-icons">
             <span id="accountIcon">👤</span>
-            <span id="cartIcon" onclick="showCartView()">🛒</span>
+            <span id="cartIcon" onclick="goToCart()">🛒</span>
         </div>
     </nav>
 
-    <!-- ========== BANNER SLIDER (CAROUSEL) ========== -->
+    <!-- ========== BANNER SLIDER ========== -->
     <div class="banner-section">
         <div class="banner-container" id="bannerContainer">
             <div class="banner-slides" id="bannerSlides">
@@ -1910,21 +1859,9 @@
             <h2 class="section-title">Customer Testimonials</h2>
             <p class="section-subtitle">What our customers are saying</p>
             <div class="testimonial-grid">
-                <div class="testimonial-card">
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"Best candle I have ever used! It smells so good and burns slower than most candles. Highly recommend!"</p>
-                    <p class="testimonial-author">— Sarah J.</p>
-                </div>
-                <div class="testimonial-card">
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"The quality is amazing! You can tell they use natural ingredients. My home smells wonderful."</p>
-                    <p class="testimonial-author">— Michael T.</p>
-                </div>
-                <div class="testimonial-card">
-                    <div class="stars">★★★★★</div>
-                    <p class="testimonial-text">"Beautiful packaging and even better scent. Will definitely order again!"</p>
-                    <p class="testimonial-author">— Emily R.</p>
-                </div>
+                <div class="testimonial-card"><div class="stars">★★★★★</div><p class="testimonial-text">"Best candle I have ever used! It smells so good and burns slower than most candles. Highly recommend!"</p><p class="testimonial-author">— Sarah J.</p></div>
+                <div class="testimonial-card"><div class="stars">★★★★★</div><p class="testimonial-text">"The quality is amazing! You can tell they use natural ingredients. My home smells wonderful."</p><p class="testimonial-author">— Michael T.</p></div>
+                <div class="testimonial-card"><div class="stars">★★★★★</div><p class="testimonial-text">"Beautiful packaging and even better scent. Will definitely order again!"</p><p class="testimonial-author">— Emily R.</p></div>
             </div>
         </section>
 
@@ -1961,25 +1898,13 @@
                     <div class="form-row"><div class="form-group"><label>Provinsi <span class="required">*</span></label><input type="text" id="addressProvince" placeholder="Contoh: DKI Jakarta" required></div>
                     <div class="form-group"><label>Kode Pos <span class="required">*</span></label><input type="text" id="addressPostal" placeholder="Contoh: 12210" required></div></div>
                     <div class="form-group"><label>Label Alamat (opsional)</label>
-                        <div class="label-buttons">
-                            <button type="button" class="label-btn" onclick="setAddressLabel('Rumah')">🏠 Rumah</button>
-                            <button type="button" class="label-btn" onclick="setAddressLabel('Kantor')">💼 Kantor</button>
-                            <button type="button" class="label-btn" onclick="setAddressLabel('Lainnya')">📍 Lainnya</button>
-                        </div>
+                        <div class="label-buttons"><button type="button" class="label-btn" onclick="setAddressLabel('Rumah')">🏠 Rumah</button><button type="button" class="label-btn" onclick="setAddressLabel('Kantor')">💼 Kantor</button><button type="button" class="label-btn" onclick="setAddressLabel('Lainnya')">📍 Lainnya</button></div>
                         <input type="hidden" id="addressLabel" value="Rumah">
                     </div>
                     <button type="submit" class="btn-add-address">Simpan Alamat</button>
                 </form>
             </div>
             <div class="button-group"><button class="btn-back-home" onclick="backToHome()">← Kembali ke Toko</button><button class="btn-logout" onclick="handleLogout()">🚪 Logout</button></div>
-        </div>
-    </div>
-
-    <!-- ========== CART VIEW ========== -->
-    <div id="cartView" style="display: none;">
-        <div class="profile-container">
-            <div class="profile-header"><h1>Keranjang Belanja</h1><p>Belanjaan Anda saat ini</p></div>
-            <div class="card"><div class="empty-address">Keranjang belanja Anda masih kosong</div><div style="text-align: center; margin-top: 1.5rem;"><button class="btn-primary" onclick="backToHome()">Belanja Sekarang →</button></div></div>
         </div>
     </div>
 
@@ -2036,18 +1961,9 @@
                     <div class="product-modal-tagline" id="modalProductTagline">"Elegant & Romantic"</div>
                     <div class="product-modal-price" id="modalProductPrice">Rp160.000</div>
                     <div class="product-modal-description" id="modalProductDescription"></div>
-                    <div class="product-modal-details">
-                        <h4>Fragrance Notes</h4>
-                        <p id="modalFragranceNotes"></p>
-                    </div>
-                    <div class="product-modal-details">
-                        <h4>Details</h4>
-                        <p id="modalDetails"></p>
-                    </div>
-                    <div class="product-modal-notes">
-                        <h4>Ingredients</h4>
-                        <p id="modalIngredients"></p>
-                    </div>
+                    <div class="product-modal-details"><h4>Fragrance Notes</h4><p id="modalFragranceNotes"></p></div>
+                    <div class="product-modal-details"><h4>Details</h4><p id="modalDetails"></p></div>
+                    <div class="product-modal-notes"><h4>Ingredients</h4><p id="modalIngredients"></p></div>
                     <div class="product-modal-buttons">
                         <button class="btn-modal-add" onclick="addToCartFromModal()">Add to Cart</button>
                         <button class="btn-modal-close" onclick="closeProductModal()">Continue Shopping</button>
