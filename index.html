@@ -927,7 +927,7 @@
             }
         }
 
-/* ========== BANNER SLIDER - UKURAN PAS SEPERTI CONTOH ========== */
+/* ========== BANNER SLIDER - UKURAN PAS DAN PROPOSIONAL ========== */
 .banner-section {
     margin-top: 60px;
     position: relative;
@@ -940,7 +940,6 @@
     width: 100%;
     background: #f5efe6;
     overflow: hidden;
-    border-radius: 0;
 }
 
 .banner-slides {
@@ -958,7 +957,10 @@
 .banner-slide img {
     width: 100%;
     height: auto;
+    max-height: 250px;
     display: block;
+    object-fit: cover;
+    object-position: center;
 }
 
 /* Tombol navigasi */
@@ -966,41 +968,41 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     background: rgba(0, 0, 0, 0.4);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     cursor: pointer;
     z-index: 20;
     transition: all 0.3s;
 }
 
 .banner-nav-left {
-    left: 10px;
+    left: 8px;
 }
 
 .banner-nav-right {
-    right: 10px;
+    right: 8px;
 }
 
 .banner-dots {
     position: absolute;
-    bottom: 12px;
+    bottom: 8px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 8px;
+    gap: 6px;
     z-index: 20;
 }
 
 .banner-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.6);
     cursor: pointer;
@@ -1009,20 +1011,25 @@
 
 .banner-dot.active {
     background: #b87c4e;
-    width: 20px;
-    border-radius: 10px;
+    width: 16px;
+    border-radius: 8px;
 }
 
-/* Responsive HP - ukuran kecil dan pas */
+/* Responsive HP */
 @media (max-width: 768px) {
     .banner-section {
         margin-top: 55px;
     }
     
+    .banner-slide img {
+        max-height: 200px;
+        object-fit: cover;
+    }
+    
     .banner-nav {
-        width: 28px;
-        height: 28px;
-        font-size: 0.8rem;
+        width: 26px;
+        height: 26px;
+        font-size: 0.7rem;
     }
     
     .banner-nav-left {
@@ -1034,19 +1041,18 @@
     }
     
     .banner-dots {
-        bottom: 8px;
-        gap: 6px;
-    }
-    
-    .banner-dot {
-        width: 6px;
-        height: 6px;
-    }
-    
-    .banner-dot.active {
-        width: 14px;
+        bottom: 6px;
     }
 }
+
+/* Untuk HP layar kecil */
+@media (max-width: 480px) {
+    .banner-slide img {
+        max-height: 160px;
+        object-fit: cover;
+    }
+}
+
 
         /* ========== HERO SECTION ========== */
         .hero-section {
