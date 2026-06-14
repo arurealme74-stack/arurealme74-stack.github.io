@@ -964,24 +964,147 @@
             }
         }
 
-        /* ========== HERO SECTION ========== */
-        .hero-section {
-            padding: 5rem 5%;
-            text-align: center;
-            background: #fefcf8;
-        }
+        /* ========== HERO SECTION (ABOUT) ========== */
+.hero-section {
+    padding: 8rem 5% 4rem;
+    background: #fefcf8;
+}
 
-        .hero-title {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
+.hero-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
-        .hero-subtitle {
-            color: #666;
-            max-width: 600px;
-            margin: 0 auto;
-        }
+.hero-text {
+    flex: 1;
+    min-width: 280px;
+}
 
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #2a2a2a;
+    margin-bottom: 0.5rem;
+}
+
+.hero-tagline {
+    font-size: 0.9rem;
+    letter-spacing: 4px;
+    color: #b87c4e;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+}
+
+.hero-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2a2a2a;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.hero-description {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.hero-features {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.hero-features span {
+    font-size: 0.85rem;
+    color: #b87c4e;
+    font-weight: 500;
+}
+
+.hero-shop-btn {
+    padding: 0.8rem 2rem;
+    background: #b87c4e;
+    color: white;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.hero-shop-btn:hover {
+    background: #9a663e;
+    transform: translateY(-2px);
+}
+
+.hero-image {
+    flex: 1;
+    min-width: 280px;
+    text-align: center;
+}
+
+.hero-image img {
+    width: 100%;
+    max-width: 450px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    object-fit: cover;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 6rem 5% 3rem;
+    }
+    
+    .hero-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-quote {
+        font-size: 1.5rem;
+    }
+    
+    .hero-features {
+        justify-content: center;
+    }
+    
+    .hero-image img {
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-quote {
+        font-size: 1.2rem;
+    }
+    
+    .hero-features {
+        gap: 1rem;
+        flex-direction: column;
+        align-items: center;
+    }
+}
         /* ========== PRODUCT SECTION ========== */
         .product-section {
             padding: 5rem 5%;
@@ -1531,11 +1654,26 @@
 
     <!-- ========== HOME VIEW ========== -->
     <div id="homeView">
-        <section class="hero-section">
-            <h2 class="hero-title">Where Everyday Moments Become Rituals</h2>
-            <p class="hero-subtitle">Handcrafted candles designed to bring calm, beauty, and intention into your daily life.</p>
-        </section>
-
+        <!-- ========== HERO SECTION (ABOUT) ========== -->
+<section class="hero-section">
+    <div class="hero-container">
+        <div class="hero-text">
+            <h1 class="hero-title">ARVELUNA</h1>
+            <p class="hero-tagline">handmade with love</p>
+            <p class="hero-quote">self care starts here</p>
+            <p class="hero-description">handcrafted candles made with natural ingredients to bring warmth, calm, and light into your everyday</p>
+            <div class="hero-features">
+                <span>🌿 natural ingredients</span>
+                <span>🤲 handmade with love</span>
+                <span>🌱 slow living everyday</span>
+            </div>
+            <button class="hero-shop-btn" onclick="scrollToProducts()">SHOP NOW →</button>
+        </div>
+        <div class="hero-image">
+            <img src="images/about1.jpeg" alt="Arveluna Candle">
+        </div>
+    </div>
+</section>
        <section class="product-section">
     <h2 class="section-title">Our Collections</h2>
     <p class="section-subtitle">Discover thoughtfully crafted pieces for your ritual</p>
