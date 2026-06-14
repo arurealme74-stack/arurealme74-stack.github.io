@@ -490,6 +490,25 @@
             line-height: 1.5;
         }
 
+        /* Button Continue */
+        .btn-continue {
+            display: inline-block;
+            background: transparent;
+            color: #2a2a2a;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-continue:hover {
+            border-color: #b87c4e;
+            color: #b87c4e;
+        }
+
         /* Footer */
         .footer {
             background: #1a1a1a;
@@ -627,11 +646,8 @@
         </div>
     </footer>
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
-    <script>
+    <!-- Firebase SDK - Module Version -->
+    <script type="module">
         // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBIpgXvw1q_QQkt4M1zejgRhT0Zg7nUihw",
@@ -640,12 +656,26 @@
             projectId: "arveluna-candle",
             storageBucket: "arveluna-candle.firebasestorage.app",
             messagingSenderId: "374147377077",
-            appId: "1:374147377077:web:56d4757bb2b3628037dbfc"
+            appId: "1:374147377077:web:56d4757bb2b3628037dbfc",
+            measurementId: "G-RG34PDCGG0"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getDatabase, 
+            ref, 
+            get, 
+            update,
+            child
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
 
         let currentUser = null;
         let isAdmin = false;
@@ -714,14 +744,14 @@
         }
 
         // Update Order Status (Admin only)
-        async function updateOrderStatus(userId, orderId, newStatus) {
+        window.updateOrderStatus = async function(userId, orderId, newStatus) {
             if (!isAdmin) {
                 alert('Akses ditolak! Hanya admin yang bisa mengubah status.');
                 return;
             }
 
             try {
-                await db.ref(`users/${userId}/orders/${orderId}`).update({
+                await update(ref(db, `users/${userId}/orders/${orderId}`), {
                     status: newStatus,
                     updatedAt: new Date().toISOString()
                 });
@@ -747,14 +777,14 @@
                     <div class="empty-orders">
                         <div class="empty-orders-icon">📦</div>
                         <p>Belum ada pesanan</p>
-                        <a href="index.html" class="btn-continue" style="display: inline-block; width: auto; padding: 0.7rem 1.8rem;">Belanja Sekarang →</a>
+                        <a href="index.html" class="btn-continue" style="display: inline-block; width: auto; padding: 0.7rem 1.8rem; text-decoration: none;">Belanja Sekarang →</a>
                     </div>
                 `;
                 return;
             }
 
             container.innerHTML = filteredOrders.map(order => `
-                <div class="order-card" onclick="showOrderDetail('${order.userId}', '${order.orderId}')">
+                <div class="order-card" onclick="window.showOrderDetail('${order.userId}', '${order.orderId}')">
                     <div class="order-header">
                         <div>
                             <span class="order-id">#${order.orderId.substring(0, 8)}</span>
@@ -782,14 +812,14 @@
                         </div>
                     </div>
                     <div class="order-footer">
-                        <button class="btn-view-detail" onclick="event.stopPropagation(); showOrderDetail('${order.userId}', '${order.orderId}')">Lihat Detail →</button>
+                        <button class="btn-view-detail" onclick="event.stopPropagation(); window.showOrderDetail('${order.userId}', '${order.orderId}')">Lihat Detail →</button>
                     </div>
                     ${isAdmin ? `
                         <div class="admin-actions" style="padding: 0.5rem 1.2rem 1rem;">
-                            ${order.status !== 'processing' ? `<button class="admin-btn admin-btn-processing" onclick="event.stopPropagation(); updateOrderStatus('${order.userId}', '${order.orderId}', 'processing')">Proses</button>` : ''}
-                            ${order.status !== 'shipped' && order.status !== 'delivered' && order.status !== 'cancelled' ? `<button class="admin-btn admin-btn-shipped" onclick="event.stopPropagation(); updateOrderStatus('${order.userId}', '${order.orderId}', 'shipped')">Kirim</button>` : ''}
-                            ${order.status !== 'delivered' && order.status !== 'cancelled' ? `<button class="admin-btn admin-btn-delivered" onclick="event.stopPropagation(); updateOrderStatus('${order.userId}', '${order.orderId}', 'delivered')">Selesai</button>` : ''}
-                            ${order.status === 'pending' ? `<button class="admin-btn admin-btn-cancel" onclick="event.stopPropagation(); updateOrderStatus('${order.userId}', '${order.orderId}', 'cancelled')">Batalkan</button>` : ''}
+                            ${order.status !== 'processing' ? `<button class="admin-btn admin-btn-processing" onclick="event.stopPropagation(); window.updateOrderStatus('${order.userId}', '${order.orderId}', 'processing')">Proses</button>` : ''}
+                            ${order.status !== 'shipped' && order.status !== 'delivered' && order.status !== 'cancelled' ? `<button class="admin-btn admin-btn-shipped" onclick="event.stopPropagation(); window.updateOrderStatus('${order.userId}', '${order.orderId}', 'shipped')">Kirim</button>` : ''}
+                            ${order.status !== 'delivered' && order.status !== 'cancelled' ? `<button class="admin-btn admin-btn-delivered" onclick="event.stopPropagation(); window.updateOrderStatus('${order.userId}', '${order.orderId}', 'delivered')">Selesai</button>` : ''}
+                            ${order.status === 'pending' ? `<button class="admin-btn admin-btn-cancel" onclick="event.stopPropagation(); window.updateOrderStatus('${order.userId}', '${order.orderId}', 'cancelled')">Batalkan</button>` : ''}
                         </div>
                     ` : ''}
                 </div>
@@ -801,11 +831,9 @@
             let order;
             
             if (isAdmin) {
-                // Admin: ambil dari data yang sudah ada
                 order = allOrders.find(o => o.userId === userId && o.orderId === orderId);
             } else {
-                // User biasa: ambil dari Firebase
-                const snapshot = await db.ref(`users/${userId}/orders/${orderId}`).once('value');
+                const snapshot = await get(ref(db, `users/${userId}/orders/${orderId}`));
                 order = snapshot.val();
                 if (order) order.orderId = orderId;
             }
@@ -891,27 +919,24 @@
             
             try {
                 if (isAdmin) {
-                    // Admin: ambil semua pesanan dari semua user
-                    const usersSnapshot = await db.ref('users').once('value');
+                    const usersSnapshot = await get(ref(db, 'users'));
                     allOrders = [];
                     
-                    usersSnapshot.forEach((userSnapshot) => {
-                        const orders = userSnapshot.child('orders');
-                        if (orders.exists()) {
-                            orders.forEach((orderSnapshot) => {
+                    if (usersSnapshot.exists()) {
+                        usersSnapshot.forEach((userSnapshot) => {
+                            const ordersSnapshot = child(userSnapshot, 'orders');
+                            ordersSnapshot.forEach((orderSnapshot) => {
                                 const order = orderSnapshot.val();
                                 order.orderId = orderSnapshot.key;
                                 order.userId = userSnapshot.key;
                                 allOrders.push(order);
                             });
-                        }
-                    });
+                        });
+                    }
                     
-                    // Urutkan berdasarkan tanggal terbaru
                     allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 } else {
-                    // User biasa: ambil pesanan sendiri
-                    const ordersSnapshot = await db.ref(`users/${currentUser.uid}/orders`).once('value');
+                    const ordersSnapshot = await get(ref(db, `users/${currentUser.uid}/orders`));
                     allOrders = [];
                     
                     if (ordersSnapshot.exists()) {
@@ -946,7 +971,7 @@
         // Check Admin Role
         async function checkAdminRole(user) {
             try {
-                const adminSnapshot = await db.ref('admins').child(user.uid).once('value');
+                const adminSnapshot = await get(ref(db, `admins/${user.uid}`));
                 isAdmin = adminSnapshot.exists();
                 
                 if (isAdmin) {
@@ -961,14 +986,13 @@
         }
 
         // Auth State
-        auth.onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
             currentUser = user;
             updateCartBadge();
             
             if (user) {
                 checkAdminRole(user);
             } else {
-                // Redirect ke home jika tidak login
                 window.location.href = 'index.html';
             }
         });
@@ -987,7 +1011,7 @@
         // Close modal on outside click
         document.getElementById('orderModal').addEventListener('click', function(e) {
             if (e.target === this) {
-                closeOrderModal();
+                window.closeOrderModal();
             }
         });
     </script>
