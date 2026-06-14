@@ -104,6 +104,26 @@
 
         window.backToHome = function() { showHomeView(); }
 
+        // ========== SCROLL KE BAGIAN PRODUK ==========
+        window.scrollToProducts = function() {
+            // Pastikan home view aktif
+            showHomeView();
+            
+            // Tunggu sebentar agar home view benar-benar tampil
+            setTimeout(() => {
+                const productSection = document.querySelector('.product-section');
+                if (productSection) {
+                    productSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    // Fallback: cari section dengan class section-title
+                    const productsTitle = document.querySelector('.section-title');
+                    if (productsTitle) {
+                        productsTitle.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            }, 100);
+        }
+
         // Format Alamat
         function getAddressFromForm() {
             return {
@@ -253,7 +273,7 @@
             }
         }
 
-        // ========== UPDATE UI LOGIN DENGAN VOUCHER DI DROPDOWN ==========
+        // ========== UPDATE UI LOGIN DENGAN VOUCHER DI DROPDOWN (TANPA GARIS COKLAT) ==========
         function updateUIForLoggedInUser(user) {
             const displayName = user.displayName || user.email.split('@')[0];
             const existingDropdown = document.querySelector('.user-dropdown');
@@ -264,7 +284,7 @@
             dropdown.innerHTML = `
                 <div class="user-name">👤 ${displayName}</div>
                 <a href="#" onclick="showProfileView(); return false;">📋 Profil Saya</a>
-                <a href="#" onclick="showVoucher(); return false;" style="background: linear-gradient(135deg, #b87c4e20, #ffd70020); border-left: 3px solid #b87c4e;">🎟️ Voucher Saya</a>
+                <a href="#" onclick="showVoucher(); return false;">🎟️ Voucher Saya</a>
                 <a href="#" onclick="viewOrders(); return false;">📦 Pesanan Saya</a>
                 <hr>
                 <a href="#" onclick="handleLogout(); return false;">🚪 Logout</a>
@@ -1419,7 +1439,7 @@
         <button class="menu-toggle" id="menuToggle">☰</button>
         <ul class="nav-links" id="navLinks">
             <li><a href="#" onclick="showHomeView(); return false;">Home</a></li>
-            <li><a href="#" onclick="showHomeView(); return false;">Shop</a></li>
+            <li><a href="#" onclick="scrollToProducts(); return false;">Shop</a></li>
             <li><a href="#" onclick="showHomeView(); return false;">About</a></li>
             <li><a href="#" onclick="showHomeView(); return false;">Journal</a></li>
         </ul>
@@ -1651,7 +1671,7 @@
             <div class="footer-col">
                 <h4>Quick Links</h4>
                 <p><a href="#" onclick="showHomeView(); return false;">Home</a></p>
-                <p><a href="#" onclick="showHomeView(); return false;">Shop</a></p>
+                <p><a href="#" onclick="scrollToProducts(); return false;">Shop</a></p>
                 <p><a href="#" onclick="showHomeView(); return false;">About</a></p>
                 <p><a href="#" onclick="showHomeView(); return false;">Journal</a></p>
             </div>
