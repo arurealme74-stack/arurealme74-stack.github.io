@@ -927,7 +927,7 @@
             }
         }
 
-/* ========== BANNER SLIDER - DENGAN UKURAN FIX ========== */
+/* ========== BANNER SLIDER - STRETCH LEBAR PENUH ========== */
 .banner-section {
     margin-top: 65px;
     position: relative;
@@ -952,18 +952,14 @@
     min-width: 100%;
     flex-shrink: 0;
     position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #f5efe6;
 }
 
 .banner-slide img {
     width: 100%;
     height: auto;
     display: block;
-    object-fit: contain;
-    max-height: 300px;
+    object-fit: cover;
+    object-position: center;
 }
 
 /* DESKTOP */
@@ -972,8 +968,8 @@
         margin-top: 80px;
     }
     .banner-slide img {
-        max-height: 400px;
-        object-fit: contain;
+        max-height: 380px;
+        object-fit: cover;
     }
 }
 
@@ -983,8 +979,8 @@
         margin-top: 70px;
     }
     .banner-slide img {
-        max-height: 320px;
-        object-fit: contain;
+        max-height: 300px;
+        object-fit: cover;
     }
 }
 
@@ -995,7 +991,7 @@
     }
     .banner-slide img {
         max-height: 220px;
-        object-fit: contain;
+        object-fit: cover;
     }
 }
 
@@ -1006,7 +1002,7 @@
     }
     .banner-slide img {
         max-height: 180px;
-        object-fit: contain;
+        object-fit: cover;
     }
 }
 
@@ -1051,7 +1047,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(255, 255, 255, 0.6);
     cursor: pointer;
     transition: all 0.3s;
 }
@@ -1085,6 +1081,7 @@
         width: 14px;
     }
 }
+
 
 
 
