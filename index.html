@@ -927,7 +927,7 @@
             }
         }
 
-/* ========== BANNER SLIDER - GAMBAR DIPERKECIL PROPORSI ========== */
+/* ========== BANNER SLIDER - DENGAN UKURAN FIX ========== */
 .banner-section {
     margin-top: 65px;
     position: relative;
@@ -955,16 +955,59 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    background: #f5efe6;
 }
 
 .banner-slide img {
-    width: auto;
+    width: 100%;
     height: auto;
-    max-width: 100%;
-    max-height: 180px;
     display: block;
     object-fit: contain;
-    margin: 0 auto;
+    max-height: 300px;
+}
+
+/* DESKTOP */
+@media (min-width: 1024px) {
+    .banner-section {
+        margin-top: 80px;
+    }
+    .banner-slide img {
+        max-height: 400px;
+        object-fit: contain;
+    }
+}
+
+/* TABLET */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .banner-section {
+        margin-top: 70px;
+    }
+    .banner-slide img {
+        max-height: 320px;
+        object-fit: contain;
+    }
+}
+
+/* HP */
+@media (max-width: 767px) {
+    .banner-section {
+        margin-top: 60px;
+    }
+    .banner-slide img {
+        max-height: 220px;
+        object-fit: contain;
+    }
+}
+
+/* HP KECIL */
+@media (max-width: 480px) {
+    .banner-section {
+        margin-top: 58px;
+    }
+    .banner-slide img {
+        max-height: 180px;
+        object-fit: contain;
+    }
 }
 
 /* Tombol navigasi */
@@ -972,41 +1015,41 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     background: rgba(0, 0, 0, 0.4);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     cursor: pointer;
     z-index: 20;
     transition: all 0.3s;
 }
 
 .banner-nav-left {
-    left: 8px;
+    left: 10px;
 }
 
 .banner-nav-right {
-    right: 8px;
+    right: 10px;
 }
 
 .banner-dots {
     position: absolute;
-    bottom: 8px;
+    bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 6px;
+    gap: 8px;
     z-index: 20;
 }
 
 .banner-dot {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.4);
     cursor: pointer;
@@ -1015,70 +1058,34 @@
 
 .banner-dot.active {
     background: #b87c4e;
-    width: 16px;
-    border-radius: 8px;
+    width: 18px;
+    border-radius: 9px;
 }
 
-/* DESKTOP */
-@media (min-width: 769px) {
-    .banner-section {
-        margin-top: 80px;
-    }
-    
-    .banner-slide img {
-        max-height: 280px;
-    }
-    
-    .banner-nav {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
-    }
-    
-    .banner-nav-left {
-        left: 15px;
-    }
-    
-    .banner-nav-right {
-        right: 15px;
-    }
-    
-    .banner-dots {
-        bottom: 12px;
-        gap: 8px;
-    }
-    
-    .banner-dot {
-        width: 8px;
-        height: 8px;
-    }
-    
-    .banner-dot.active {
-        width: 20px;
-    }
-}
-
-/* HP (lebar < 768px) */
 @media (max-width: 768px) {
-    .banner-section {
-        margin-top: 60px;
+    .banner-nav {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
     }
-    
-    .banner-slide img {
-        max-height: 150px;
+    .banner-nav-left {
+        left: 5px;
+    }
+    .banner-nav-right {
+        right: 5px;
+    }
+    .banner-dots {
+        bottom: 6px;
+    }
+    .banner-dot {
+        width: 6px;
+        height: 6px;
+    }
+    .banner-dot.active {
+        width: 14px;
     }
 }
 
-/* HP layar sangat kecil */
-@media (max-width: 480px) {
-    .banner-section {
-        margin-top: 58px;
-    }
-    
-    .banner-slide img {
-        max-height: 130px;
-    }
-}
 
 
 
