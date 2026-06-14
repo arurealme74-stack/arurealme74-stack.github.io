@@ -111,13 +111,94 @@
                 const productSection = document.querySelector('.product-section');
                 if (productSection) {
                     productSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                    const productsTitle = document.querySelector('.section-title');
-                    if (productsTitle) {
-                        productsTitle.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
                 }
             }, 100);
+        }
+
+        // ========== PRODUK DATA ==========
+        const productsData = {
+            'Rose': {
+                name: 'Rose',
+                tagline: '"Elegant & Romantic"',
+                price: 160000,
+                image: 'images/p1.png',
+                description: 'Harum mawar yang mewah dan memikat, menciptakan suasana hangat, romantis, dan penuh keanggunan di dalam ruangan. Sempurna untuk malam yang spesial atau relaksasi setelah hari yang panjang.',
+                fragranceNotes: 'Top: Fresh Rose, Bergamot | Heart: Peony, Geranium | Base: Vanilla, Musk',
+                details: 'Weight: 200g | Burn Time: 40-50 hours | Material: Natural Soy Wax',
+                ingredients: '100% Natural Soy Wax, Essential Oils (Rose, Geranium, Vanilla), Cotton Wick'
+            },
+            'Lavender': {
+                name: 'Lavender',
+                tagline: '"Calm & Relaxing"',
+                price: 175000,
+                image: 'images/p2.png',
+                description: 'Aroma lavender yang lembut menghadirkan ketenangan dan kenyamanan di setiap momen. Cocok untuk membantu menciptakan suasana rileks saat beristirahat maupun sebelum tidur.',
+                fragranceNotes: 'Top: Lavender, Eucalyptus | Heart: Chamomile, Rosemary | Base: Cedarwood, Musk',
+                details: 'Weight: 200g | Burn Time: 40-50 hours | Material: Natural Soy Wax',
+                ingredients: '100% Natural Soy Wax, Essential Oils (Lavender, Chamomile, Cedarwood), Cotton Wick'
+            },
+            'White Jasmine': {
+                name: 'White Jasmine',
+                tagline: '"Soft & Comforting"',
+                price: 150000,
+                image: 'images/p3.png',
+                description: 'Aroma melati putih yang lembut dan menenangkan, memberikan kesan bersih, nyaman, dan elegan untuk menemani setiap aktivitas.',
+                fragranceNotes: 'Top: White Jasmine, Green Tea | Heart: Lily, Freesia | Base: Sandalwood, Amber',
+                details: 'Weight: 200g | Burn Time: 40-50 hours | Material: Natural Soy Wax',
+                ingredients: '100% Natural Soy Wax, Essential Oils (Jasmine, Sandalwood), Cotton Wick'
+            },
+            'Ocean Breeze': {
+                name: 'Ocean Breeze',
+                tagline: '"Fresh & Clean"',
+                price: 140000,
+                image: 'images/p4.png',
+                description: 'Wangi segar yang terinspirasi dari semilir angin laut, menghadirkan sensasi sejuk dan menyegarkan yang membuat ruangan terasa lebih nyaman.',
+                fragranceNotes: 'Top: Sea Salt, Ozone | Heart: Jasmine, Lily | Base: Driftwood, Musk',
+                details: 'Weight: 200g | Burn Time: 40-50 hours | Material: Natural Soy Wax',
+                ingredients: '100% Natural Soy Wax, Essential Oils, Cotton Wick'
+            },
+            'Cherry Blossom': {
+                name: 'Cherry Blossom',
+                tagline: '"Sweet & Refreshing"',
+                price: 155000,
+                image: 'images/p5.png',
+                description: 'Perpaduan aroma bunga sakura yang manis dan segar, menghadirkan nuansa ceria serta menenangkan yang membuat suasana terasa lebih hidup.',
+                fragranceNotes: 'Top: Cherry Blossom, Pear | Heart: Rose, Violet | Base: Vanilla, Sandalwood',
+                details: 'Weight: 200g | Burn Time: 40-50 hours | Material: Natural Soy Wax',
+                ingredients: '100% Natural Soy Wax, Essential Oils, Cotton Wick'
+            }
+        };
+
+        // ========== SHOW PRODUCT MODAL ==========
+        window.showProductModal = function(productName) {
+            const product = productsData[productName];
+            if (!product) return;
+            
+            document.getElementById('modalProductName').textContent = product.name;
+            document.getElementById('modalProductTagline').textContent = product.tagline;
+            document.getElementById('modalProductPrice').innerHTML = `Rp ${product.price.toLocaleString('id-ID')},00`;
+            document.getElementById('modalProductImage').src = product.image;
+            document.getElementById('modalProductDescription').textContent = product.description;
+            document.getElementById('modalFragranceNotes').textContent = product.fragranceNotes;
+            document.getElementById('modalDetails').textContent = product.details;
+            document.getElementById('modalIngredients').textContent = product.ingredients;
+            
+            window.currentProduct = { name: product.name, price: product.price };
+            
+            document.getElementById('productModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        window.closeProductModal = function() {
+            document.getElementById('productModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        window.addToCartFromModal = function() {
+            if (window.currentProduct) {
+                addToCart(window.currentProduct.name, window.currentProduct.price);
+                closeProductModal();
+            }
         }
 
         // Format Alamat
@@ -537,6 +618,16 @@
             if (defaultLabelBtn && defaultLabelBtn.textContent.includes('Rumah')) {
                 defaultLabelBtn.classList.add('active');
             }
+            
+            // Tutup modal produk saat klik di luar
+            const productModal = document.getElementById('productModal');
+            if (productModal) {
+                productModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeProductModal();
+                    }
+                });
+            }
         });
 
         const style = document.createElement('style');
@@ -804,142 +895,96 @@
             }
         }
 
-        /* ========== BANNER SLIDER (CAROUSEL) - FULL LEBAR ========== */
-.banner-section {
-    margin-top: 80px;
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-}
-
-.banner-container {
-    position: relative;
-    width: 100%;
-    background: #f5efe6;
-    overflow: hidden;
-    cursor: pointer;
-}
-
-.banner-slides {
-    display: flex;
-    transition: transform 0.5s ease-in-out;
-    width: 100%;
-}
-
-.banner-slide {
-    min-width: 100%;
-    flex-shrink: 0;
-    position: relative;
-}
-
-.banner-slide img {
-    width: 100%;
-    height: auto;
-    max-height: 70vh;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-}
-
-/* Area kiri/kanan untuk geser */
-.banner-container::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 33.33%;
-    height: 100%;
-    z-index: 15;
-    cursor: pointer;
-}
-
-.banner-container::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 33.33%;
-    height: 100%;
-    z-index: 15;
-    cursor: pointer;
-}
-
-/* Dots indicator */
-.banner-dots {
-    position: absolute;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 12px;
-    z-index: 20;
-}
-
-.banner-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.5);
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.banner-dot.active {
-    background: #b87c4e;
-    width: 25px;
-    border-radius: 10px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .banner-section {
-        margin-top: 70px;
-    }
-    
-    .banner-slide img {
-        max-height: 50vh;
-    }
-    
-    .banner-dots {
-        bottom: 10px;
-        gap: 8px;
-    }
-    
-    .banner-dot {
-        width: 8px;
-        height: 8px;
-    }
-    
-    .banner-dot.active {
-        width: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .banner-slide img {
-        max-height: 40vh;
-    }
-}
-        /* Tablet */
-        @media (max-width: 1024px) {
-            .banner-container {
-                max-height: 350px;
-            }
-            .banner-slide img {
-                max-height: 350px;
-            }
+        /* ========== BANNER SLIDER (CAROUSEL) ========== */
+        .banner-section {
+            margin-top: 80px;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
         }
 
-        /* HP */
+        .banner-container {
+            position: relative;
+            width: 100%;
+            background: #f5efe6;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .banner-slides {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            width: 100%;
+        }
+
+        .banner-slide {
+            min-width: 100%;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .banner-slide img {
+            width: 100%;
+            height: auto;
+            max-height: 70vh;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+
+        .banner-container::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 33.33%;
+            height: 100%;
+            z-index: 15;
+            cursor: pointer;
+        }
+
+        .banner-container::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 33.33%;
+            height: 100%;
+            z-index: 15;
+            cursor: pointer;
+        }
+
+        .banner-dots {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 20;
+        }
+
+        .banner-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .banner-dot.active {
+            background: #b87c4e;
+            width: 25px;
+            border-radius: 10px;
+        }
+
         @media (max-width: 768px) {
             .banner-section {
                 margin-top: 70px;
             }
-            .banner-container {
-                max-height: 280px;
-            }
             .banner-slide img {
-                max-height: 280px;
+                max-height: 50vh;
             }
             .banner-dots {
                 bottom: 10px;
@@ -954,129 +999,120 @@
             }
         }
 
-        /* HP kecil */
         @media (max-width: 480px) {
-            .banner-container {
-                max-height: 220px;
-            }
             .banner-slide img {
-                max-height: 220px;
+                max-height: 40vh;
             }
         }
 
-    /* ========== HERO SECTION (ELEGAN) ========== */
-.hero-section {
-    padding: 8rem 5% 4rem;
-    background: #fefcf8;
-}
+        /* ========== HERO SECTION ========== */
+        .hero-section {
+            padding: 8rem 5% 4rem;
+            background: #fefcf8;
+        }
 
-.hero-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4rem;
-    flex-wrap: wrap;
-    max-width: 1200px;
-    margin: 0 auto;
-}
+        .hero-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4rem;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-.hero-text {
-    flex: 1;
-    min-width: 300px;
-}
+        .hero-text {
+            flex: 1;
+            min-width: 300px;
+        }
 
-.hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 3.5rem;
-    font-weight: 700;
-    color: #2a2a2a;
-    letter-spacing: 2px;
-    margin-bottom: 1.5rem;
-}
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #2a2a2a;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+        }
 
-.hero-divider {
-    width: 60px;
-    height: 2px;
-    background: #b87c4e;
-    margin-bottom: 1.5rem;
-}
+        .hero-divider {
+            width: 60px;
+            height: 2px;
+            background: #b87c4e;
+            margin-bottom: 1.5rem;
+        }
 
-.hero-description {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: #5a5a5a;
-    margin-bottom: 2rem;
-    font-weight: 400;
-}
+        .hero-description {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #5a5a5a;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
 
-.hero-shop-btn {
-    padding: 0.9rem 2.2rem;
-    background: transparent;
-    color: #2a2a2a;
-    border: 1.5px solid #b87c4e;
-    border-radius: 40px;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-    transition: all 0.3s;
-}
+        .hero-shop-btn {
+            padding: 0.9rem 2.2rem;
+            background: transparent;
+            color: #2a2a2a;
+            border: 1.5px solid #b87c4e;
+            border-radius: 40px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
 
-.hero-shop-btn:hover {
-    background: #b87c4e;
-    color: white;
-    transform: translateY(-2px);
-}
+        .hero-shop-btn:hover {
+            background: #b87c4e;
+            color: white;
+            transform: translateY(-2px);
+        }
 
-.hero-image {
-    flex: 1;
-    min-width: 280px;
-    text-align: center;
-}
+        .hero-image {
+            flex: 1;
+            min-width: 280px;
+            text-align: center;
+        }
 
-.hero-image img {
-    width: 100%;
-    max-width: 450px;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-}
+        .hero-image img {
+            width: 100%;
+            max-width: 450px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .hero-section {
-        padding: 6rem 5% 3rem;
-    }
-    
-    .hero-container {
-        flex-direction: column;
-        text-align: center;
-        gap: 2rem;
-    }
-    
-    .hero-title {
-        font-size: 2.5rem;
-    }
-    
-    .hero-divider {
-        margin-left: auto;
-        margin-right: auto;
-    }
-    
-    .hero-image img {
-        max-width: 300px;
-    }
-}
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 6rem 5% 3rem;
+            }
+            .hero-container {
+                flex-direction: column;
+                text-align: center;
+                gap: 2rem;
+            }
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .hero-divider {
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .hero-image img {
+                max-width: 300px;
+            }
+        }
 
-@media (max-width: 480px) {
-    .hero-title {
-        font-size: 2rem;
-    }
-    
-    .hero-description {
-        font-size: 0.9rem;
-    }
-}
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            .hero-description {
+                font-size: 0.9rem;
+            }
+        }
+
         /* ========== PRODUCT SECTION ========== */
         .product-section {
             padding: 5rem 5%;
@@ -1158,12 +1194,201 @@
             color: #2a2a2a;
         }
 
-        .product-old-price {
-            font-size: 0.7rem;
+        /* ========== PRODUCT MODAL ========== */
+        .product-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .product-modal.active {
+            display: flex;
+        }
+
+        .product-modal-content {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        .product-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
             color: #999;
-            text-decoration: line-through;
-            margin-left: 0.5rem;
-            font-weight: normal;
+            z-index: 10;
+            transition: color 0.3s;
+        }
+
+        .product-modal-close:hover {
+            color: #333;
+        }
+
+        .product-modal-body {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 2rem;
+            gap: 2rem;
+        }
+
+        .product-modal-gallery {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .product-modal-gallery img {
+            width: 100%;
+            border-radius: 16px;
+            object-fit: cover;
+        }
+
+        .product-modal-info {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .product-modal-info h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #2a2a2a;
+        }
+
+        .product-modal-tagline {
+            font-size: 0.8rem;
+            color: #b87c4e;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .product-modal-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #b87c4e;
+            margin-bottom: 1rem;
+        }
+
+        .product-modal-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+
+        .product-modal-details {
+            margin-bottom: 1.5rem;
+        }
+
+        .product-modal-details h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2a2a2a;
+        }
+
+        .product-modal-details p {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .product-modal-notes {
+            background: #f5f0e8;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-modal-notes h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-modal-notes p {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .product-modal-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-modal-add {
+            flex: 1;
+            padding: 0.9rem;
+            background: #b87c4e;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-modal-add:hover {
+            background: #9a663e;
+        }
+
+        .btn-modal-close {
+            flex: 1;
+            padding: 0.9rem;
+            background: transparent;
+            color: #2a2a2a;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-modal-close:hover {
+            border-color: #b87c4e;
+            color: #b87c4e;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .product-modal-body {
+                flex-direction: column;
+                padding: 1.5rem;
+            }
+            .product-modal-info h2 {
+                font-size: 1.5rem;
+            }
+            .product-modal-price {
+                font-size: 1.4rem;
+            }
         }
 
         /* ========== TESTIMONIALS ========== */
@@ -1610,15 +1835,9 @@
     <div class="banner-section">
         <div class="banner-container" id="bannerContainer">
             <div class="banner-slides" id="bannerSlides">
-                <div class="banner-slide">
-                    <img src="images/banner1.jpeg" alt="Banner 1">
-                </div>
-                <div class="banner-slide">
-                    <img src="images/banner2.jpeg" alt="Banner 2">
-                </div>
-                <div class="banner-slide">
-                    <img src="images/banner3.jpeg" alt="Banner 3">
-                </div>
+                <div class="banner-slide"><img src="images/banner1.jpeg" alt="Banner 1"></div>
+                <div class="banner-slide"><img src="images/banner2.jpeg" alt="Banner 2"></div>
+                <div class="banner-slide"><img src="images/banner3.jpeg" alt="Banner 3"></div>
             </div>
             <div class="banner-dots" id="bannerDots"></div>
         </div>
@@ -1626,72 +1845,67 @@
 
     <!-- ========== HOME VIEW ========== -->
     <div id="homeView">
-        <!-- ========== HERO SECTION (ABOUT) ========== -->
-<section class="hero-section">
-    <div class="hero-container">
-        <div class="hero-text">
-            <h1 class="hero-title">ARVELUNA</h1>
-            <div class="hero-divider"></div>
-            <p class="hero-description">We craft artisanal candles from natural soy wax and essential oils, designed to transform your space into a sanctuary of calm. Each piece is hand-poured with intention, bringing warmth and serenity to your everyday rituals.</p>
-            <button class="hero-shop-btn" onclick="scrollToProducts()">Explore Collection →</button>
-        </div>
-        <div class="hero-image">
-            <img src="images/about1.jpeg" alt="Arveluna Candle">
-        </div>
-    </div>
-</section>
+        <section class="hero-section">
+            <div class="hero-container">
+                <div class="hero-text">
+                    <h1 class="hero-title">ARVELUNA</h1>
+                    <div class="hero-divider"></div>
+                    <p class="hero-description">We craft artisanal candles from natural soy wax and essential oils, designed to transform your space into a sanctuary of calm. Each piece is hand-poured with intention, bringing warmth and serenity to your everyday rituals.</p>
+                    <button class="hero-shop-btn" onclick="scrollToProducts()">Explore Collection →</button>
+                </div>
+                <div class="hero-image">
+                    <img src="images/about1.jpeg" alt="Arveluna Candle">
+                </div>
+            </div>
+        </section>
+
         <section class="product-section">
-    <h2 class="section-title">Our Collections</h2>
-    <p class="section-subtitle">Discover thoughtfully crafted pieces for your ritual</p>
-    <div class="product-grid">
-        
-        <div class="product-card" onclick="addToCart('Rose', 160000)">
-            <div class="product-image"><img src="images/p1.png" alt="Rose Candle"></div>
-            <div class="product-info">
-                <h3 class="product-title">Rose</h3>
-                <div class="product-aroma">"Elegant & Romantic"</div>
-                <div class="product-price">Rp160.000</div>
+            <h2 class="section-title">Our Collections</h2>
+            <p class="section-subtitle">Discover thoughtfully crafted pieces for your ritual</p>
+            <div class="product-grid">
+                <div class="product-card" onclick="showProductModal('Rose')">
+                    <div class="product-image"><img src="images/p1.png" alt="Rose Candle"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">Rose</h3>
+                        <div class="product-aroma">"Elegant & Romantic"</div>
+                        <div class="product-price">Rp160.000</div>
+                    </div>
+                </div>
+                <div class="product-card" onclick="showProductModal('Lavender')">
+                    <div class="product-image"><img src="images/p2.png" alt="Lavender Candle"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">Lavender</h3>
+                        <div class="product-aroma">"Calm & Relaxing"</div>
+                        <div class="product-price">Rp175.000</div>
+                    </div>
+                </div>
+                <div class="product-card" onclick="showProductModal('White Jasmine')">
+                    <div class="product-image"><img src="images/p3.png" alt="White Jasmine Candle"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">White Jasmine</h3>
+                        <div class="product-aroma">"Soft & Comforting"</div>
+                        <div class="product-price">Rp150.000</div>
+                    </div>
+                </div>
+                <div class="product-card" onclick="showProductModal('Ocean Breeze')">
+                    <div class="product-image"><img src="images/p4.png" alt="Ocean Breeze Candle"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">Ocean Breeze</h3>
+                        <div class="product-aroma">"Fresh & Clean"</div>
+                        <div class="product-price">Rp140.000</div>
+                    </div>
+                </div>
+                <div class="product-card" onclick="showProductModal('Cherry Blossom')">
+                    <div class="product-image"><img src="images/p5.png" alt="Cherry Blossom Candle"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">Cherry Blossom</h3>
+                        <div class="product-aroma">"Sweet & Refreshing"</div>
+                        <div class="product-price">Rp155.000</div>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <div class="product-card" onclick="addToCart('Lavender', 175000)">
-            <div class="product-image"><img src="images/p2.png" alt="Lavender Candle"></div>
-            <div class="product-info">
-                <h3 class="product-title">Lavender</h3>
-                <div class="product-aroma">"Calm & Relaxing"</div>
-                <div class="product-price">Rp175.000</div>
-            </div>
-        </div>
-        
-        <div class="product-card" onclick="addToCart('White Jasmine', 150000)">
-            <div class="product-image"><img src="images/p3.png" alt="White Jasmine Candle"></div>
-            <div class="product-info">
-                <h3 class="product-title">White Jasmine</h3>
-                <div class="product-aroma">"Soft & Comforting"</div>
-                <div class="product-price">Rp150.000</div>
-            </div>
-        </div>
-        
-        <div class="product-card" onclick="addToCart('Ocean Breeze', 140000)">
-            <div class="product-image"><img src="images/p4.png" alt="Ocean Breeze Candle"></div>
-            <div class="product-info">
-                <h3 class="product-title">Ocean Breeze</h3>
-                <div class="product-aroma">"Fresh & Clean"</div>
-                <div class="product-price">Rp140.000</div>
-            </div>
-        </div>
-        
-        <div class="product-card" onclick="addToCart('Cherry Blossom', 155000)">
-            <div class="product-image"><img src="images/p5.png" alt="Cherry Blossom Candle"></div>
-            <div class="product-info">
-                <h3 class="product-title">Cherry Blossom</h3>
-                <div class="product-aroma">"Sweet & Refreshing"</div>
-                <div class="product-price">Rp155.000</div>
-            </div>
-        </div>
-        
-    </div>
-</section> 
+        </section>
+
         <section class="testimonials">
             <h2 class="section-title">Customer Testimonials</h2>
             <p class="section-subtitle">What our customers are saying</p>
@@ -1727,43 +1941,26 @@
     <!-- ========== PROFILE VIEW ========== -->
     <div id="profileView" style="display: none;">
         <div class="profile-container">
-            <div class="profile-header">
-                <h1>Profil Saya</h1>
-                <p>Kelola informasi akun dan alamat Anda</p>
-            </div>
-            <div class="card">
-                <h2>Informasi Akun</h2>
+            <div class="profile-header"><h1>Profil Saya</h1><p>Kelola informasi akun dan alamat Anda</p></div>
+            <div class="card"><h2>Informasi Akun</h2>
                 <div class="info-row"><div class="info-label">Nama</div><div class="info-value" id="profileName">-</div></div>
                 <div class="info-row"><div class="info-label">Email</div><div class="info-value" id="profileEmail">-</div></div>
                 <div class="info-row"><div class="info-label">Metode Login</div><div class="info-value" id="profileMethod">-</div></div>
                 <div class="info-row"><div class="info-label">Verifikasi Email</div><div class="info-value" id="profileVerified">-</div></div>
             </div>
-            <div class="card">
-                <h2>📦 Daftar Alamat</h2>
-                <div class="address-list" id="addressList"><div class="empty-address">Memuat alamat...</div></div>
-            </div>
-            <div class="card">
-                <h2>➕ Tambah Alamat Baru</h2>
+            <div class="card"><h2>📦 Daftar Alamat</h2><div class="address-list" id="addressList"><div class="empty-address">Memuat alamat...</div></div></div>
+            <div class="card"><h2>➕ Tambah Alamat Baru</h2>
                 <form id="addAddressForm" class="address-form">
-                    <div class="form-row">
-                        <div class="form-group"><label>Nama Penerima <span class="required">*</span></label><input type="text" id="addressName" placeholder="Contoh: Ahmad Wijaya" required></div>
-                        <div class="form-group"><label>Nomor Telepon <span class="required">*</span></label><input type="tel" id="addressPhone" placeholder="Contoh: 081234567890" required></div>
-                    </div>
+                    <div class="form-row"><div class="form-group"><label>Nama Penerima <span class="required">*</span></label><input type="text" id="addressName" placeholder="Contoh: Ahmad Wijaya" required></div>
+                    <div class="form-group"><label>Nomor Telepon <span class="required">*</span></label><input type="tel" id="addressPhone" placeholder="Contoh: 081234567890" required></div></div>
                     <div class="form-group"><label>Jalan / Nomor <span class="required">*</span></label><input type="text" id="addressStreet" placeholder="Contoh: Jl. Kebayoran Lama No. 123" required></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>RT / RW</label><input type="text" id="addressRtRw" placeholder="Contoh: 001/002"></div>
-                        <div class="form-group"><label>Kelurahan <span class="required">*</span></label><input type="text" id="addressVillage" placeholder="Contoh: Grogol Selatan" required></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Kecamatan <span class="required">*</span></label><input type="text" id="addressDistrict" placeholder="Contoh: Kebayoran Lama" required></div>
-                        <div class="form-group"><label>Kota/Kabupaten <span class="required">*</span></label><input type="text" id="addressCity" placeholder="Contoh: Jakarta Selatan" required></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Provinsi <span class="required">*</span></label><input type="text" id="addressProvince" placeholder="Contoh: DKI Jakarta" required></div>
-                        <div class="form-group"><label>Kode Pos <span class="required">*</span></label><input type="text" id="addressPostal" placeholder="Contoh: 12210" required></div>
-                    </div>
-                    <div class="form-group">
-                        <label>Label Alamat (opsional)</label>
+                    <div class="form-row"><div class="form-group"><label>RT / RW</label><input type="text" id="addressRtRw" placeholder="Contoh: 001/002"></div>
+                    <div class="form-group"><label>Kelurahan <span class="required">*</span></label><input type="text" id="addressVillage" placeholder="Contoh: Grogol Selatan" required></div></div>
+                    <div class="form-row"><div class="form-group"><label>Kecamatan <span class="required">*</span></label><input type="text" id="addressDistrict" placeholder="Contoh: Kebayoran Lama" required></div>
+                    <div class="form-group"><label>Kota/Kabupaten <span class="required">*</span></label><input type="text" id="addressCity" placeholder="Contoh: Jakarta Selatan" required></div></div>
+                    <div class="form-row"><div class="form-group"><label>Provinsi <span class="required">*</span></label><input type="text" id="addressProvince" placeholder="Contoh: DKI Jakarta" required></div>
+                    <div class="form-group"><label>Kode Pos <span class="required">*</span></label><input type="text" id="addressPostal" placeholder="Contoh: 12210" required></div></div>
+                    <div class="form-group"><label>Label Alamat (opsional)</label>
                         <div class="label-buttons">
                             <button type="button" class="label-btn" onclick="setAddressLabel('Rumah')">🏠 Rumah</button>
                             <button type="button" class="label-btn" onclick="setAddressLabel('Kantor')">💼 Kantor</button>
@@ -1774,63 +1971,27 @@
                     <button type="submit" class="btn-add-address">Simpan Alamat</button>
                 </form>
             </div>
-            <div class="button-group">
-                <button class="btn-back-home" onclick="backToHome()">← Kembali ke Toko</button>
-                <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
-            </div>
+            <div class="button-group"><button class="btn-back-home" onclick="backToHome()">← Kembali ke Toko</button><button class="btn-logout" onclick="handleLogout()">🚪 Logout</button></div>
         </div>
     </div>
 
     <!-- ========== CART VIEW ========== -->
     <div id="cartView" style="display: none;">
         <div class="profile-container">
-            <div class="profile-header">
-                <h1>Keranjang Belanja</h1>
-                <p>Belanjaan Anda saat ini</p>
-            </div>
-            <div class="card">
-                <div class="empty-address">Keranjang belanja Anda masih kosong</div>
-                <div style="text-align: center; margin-top: 1.5rem;">
-                    <button class="btn-primary" onclick="backToHome()">Belanja Sekarang →</button>
-                </div>
-            </div>
+            <div class="profile-header"><h1>Keranjang Belanja</h1><p>Belanjaan Anda saat ini</p></div>
+            <div class="card"><div class="empty-address">Keranjang belanja Anda masih kosong</div><div style="text-align: center; margin-top: 1.5rem;"><button class="btn-primary" onclick="backToHome()">Belanja Sekarang →</button></div></div>
         </div>
     </div>
 
     <!-- ========== FOOTER ========== -->
     <footer class="footer">
         <div class="footer-grid">
-            <div class="footer-col">
-                <h4>ARVELUNA</h4>
-                <p>Handcrafted candles and body care designed to bring calm and intention into your daily life.</p>
-                <div class="social-icons">
-                    <div class="social-icon" onclick="alert('Instagram: @arveluna.candle')">📷</div>
-                    <div class="social-icon" onclick="alert('Facebook: Arveluna Candle')">📘</div>
-                    <div class="social-icon" onclick="alert('TikTok: @arveluna')">🎵</div>
-                </div>
-            </div>
-            <div class="footer-col">
-                <h4>Quick Links</h4>
-                <p><a href="#" onclick="showHomeView(); return false;">Home</a></p>
-                <p><a href="#" onclick="scrollToProducts(); return false;">Shop</a></p>
-                <p><a href="#" onclick="showHomeView(); return false;">About</a></p>
-                <p><a href="#" onclick="showHomeView(); return false;">Journal</a></p>
-            </div>
-            <div class="footer-col">
-                <h4>Support</h4>
-                <p>📞 +62 812 3456 7890</p>
-                <p>✉️ hello@arveluna.com</p>
-                <p>Mon-Sat, 10am-5pm</p>
-            </div>
-            <div class="footer-col">
-                <h4>Location</h4>
-                <p>Jl. Raya Kebayoran Lama No. 123</p>
-                <p>Jakarta Selatan, Indonesia</p>
-            </div>
+            <div class="footer-col"><h4>ARVELUNA</h4><p>Handcrafted candles and body care designed to bring calm and intention into your daily life.</p><div class="social-icons"><div class="social-icon" onclick="alert('Instagram: @arveluna.candle')">📷</div><div class="social-icon" onclick="alert('Facebook: Arveluna Candle')">📘</div><div class="social-icon" onclick="alert('TikTok: @arveluna')">🎵</div></div></div>
+            <div class="footer-col"><h4>Quick Links</h4><p><a href="#" onclick="showHomeView(); return false;">Home</a></p><p><a href="#" onclick="scrollToProducts(); return false;">Shop</a></p><p><a href="#" onclick="showHomeView(); return false;">About</a></p><p><a href="#" onclick="showHomeView(); return false;">Journal</a></p></div>
+            <div class="footer-col"><h4>Support</h4><p>📞 +62 812 3456 7890</p><p>✉️ hello@arveluna.com</p><p>Mon-Sat, 10am-5pm</p></div>
+            <div class="footer-col"><h4>Location</h4><p>Jl. Raya Kebayoran Lama No. 123</p><p>Jakarta Selatan, Indonesia</p></div>
         </div>
-        <div class="copyright">
-            <p>&copy; 2024 Arveluna Candle. All rights reserved.</p>
-        </div>
+        <div class="copyright"><p>&copy; 2024 Arveluna Candle. All rights reserved.</p></div>
     </footer>
 
     <div class="chat-btn" onclick="alert('Halo! Ada yang bisa kami bantu? 💬')">💬</div>
@@ -1858,6 +2019,40 @@
                 <div class="divider">atau</div>
                 <button class="modal-btn google-btn" onclick="handleGoogleLogin()"><span>🅶</span> Daftar dengan Google</button>
                 <div class="modal-footer">Sudah punya akun? <span onclick="showLogin()">Login disini</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODAL PRODUK ========== -->
+    <div id="productModal" class="product-modal">
+        <div class="product-modal-content">
+            <span class="product-modal-close" onclick="closeProductModal()">&times;</span>
+            <div class="product-modal-body">
+                <div class="product-modal-gallery">
+                    <img id="modalProductImage" src="" alt="Product Image">
+                </div>
+                <div class="product-modal-info">
+                    <h2 id="modalProductName">Rose</h2>
+                    <div class="product-modal-tagline" id="modalProductTagline">"Elegant & Romantic"</div>
+                    <div class="product-modal-price" id="modalProductPrice">Rp160.000</div>
+                    <div class="product-modal-description" id="modalProductDescription"></div>
+                    <div class="product-modal-details">
+                        <h4>Fragrance Notes</h4>
+                        <p id="modalFragranceNotes"></p>
+                    </div>
+                    <div class="product-modal-details">
+                        <h4>Details</h4>
+                        <p id="modalDetails"></p>
+                    </div>
+                    <div class="product-modal-notes">
+                        <h4>Ingredients</h4>
+                        <p id="modalIngredients"></p>
+                    </div>
+                    <div class="product-modal-buttons">
+                        <button class="btn-modal-add" onclick="addToCartFromModal()">Add to Cart</button>
+                        <button class="btn-modal-close" onclick="closeProductModal()">Continue Shopping</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1918,12 +2113,10 @@
             clearInterval(autoInterval);
         }
 
-        // Klik area kiri/kanan untuk ganti slide
         bannerContainer.addEventListener('click', (e) => {
             const rect = bannerContainer.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const containerWidth = rect.width;
-            
             if (clickX < containerWidth / 3) {
                 stopAutoSlide();
                 prevSlide();
@@ -1935,7 +2128,6 @@
             }
         });
 
-        // Touch events untuk swipe di HP
         bannerContainer.addEventListener('touchstart', (e) => {
             startX = e.touches[0].clientX;
             stopAutoSlide();
