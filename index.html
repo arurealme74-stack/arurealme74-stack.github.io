@@ -927,7 +927,7 @@
             }
         }
 
-/* ========== BANNER SLIDER - RESPONSIF UNTUK DESKTOP & HP ========== */
+/* ========== BANNER SLIDER - TINGGI DITAMBAH AGAR TIDAK TERPOTONG ========== */
 .banner-section {
     margin-top: 75px;
     position: relative;
@@ -957,7 +957,7 @@
 .banner-slide img {
     width: 100%;
     height: auto;
-    max-height: 300px;
+    min-height: 250px;
     display: block;
     object-fit: cover;
     object-position: center;
@@ -1022,9 +1022,10 @@
     }
     
     .banner-slide img {
-        max-height: 400px;
+        min-height: 350px;
+        max-height: 450px;
         object-fit: cover;
-        object-position: center top;
+        object-position: center;
     }
     
     .banner-nav {
@@ -1045,15 +1046,6 @@
         bottom: 20px;
         gap: 12px;
     }
-    
-    .banner-dot {
-        width: 10px;
-        height: 10px;
-    }
-    
-    .banner-dot.active {
-        width: 26px;
-    }
 }
 
 /* TABLET (lebar 481px - 768px) */
@@ -1063,15 +1055,10 @@
     }
     
     .banner-slide img {
-        max-height: 280px;
+        min-height: 280px;
+        max-height: 350px;
         object-fit: cover;
         object-position: center;
-    }
-    
-    .banner-nav {
-        width: 34px;
-        height: 34px;
-        font-size: 1rem;
     }
 }
 
@@ -1082,7 +1069,8 @@
     }
     
     .banner-slide img {
-        max-height: 200px;
+        min-height: 220px;
+        max-height: 280px;
         object-fit: cover;
         object-position: center;
     }
@@ -1105,16 +1093,8 @@
         bottom: 8px;
         gap: 6px;
     }
-    
-    .banner-dot {
-        width: 6px;
-        height: 6px;
-    }
-    
-    .banner-dot.active {
-        width: 16px;
-    }
 }
+
 
 
         /* ========== HERO SECTION ========== */
