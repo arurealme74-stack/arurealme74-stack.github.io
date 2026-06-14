@@ -927,7 +927,7 @@
             }
         }
 
-/* ========== BANNER SLIDER - FULL WIDTH TANPA PUTIH ========== */
+/* ========== BANNER SLIDER - UKURAN PAS SEPERTI CONTOH ========== */
 .banner-section {
     margin-top: 60px;
     position: relative;
@@ -938,8 +938,9 @@
 .banner-container {
     position: relative;
     width: 100%;
-    background: #fefcf8;
+    background: #f5efe6;
     overflow: hidden;
+    border-radius: 0;
 }
 
 .banner-slides {
@@ -958,8 +959,6 @@
     width: 100%;
     height: auto;
     display: block;
-    object-fit: cover;
-    object-position: center;
 }
 
 /* Tombol navigasi */
@@ -967,15 +966,15 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     background: rgba(0, 0, 0, 0.4);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1rem;
+    font-size: 0.9rem;
     cursor: pointer;
     z-index: 20;
     transition: all 0.3s;
@@ -1014,16 +1013,16 @@
     border-radius: 10px;
 }
 
-/* Responsive HP */
+/* Responsive HP - ukuran kecil dan pas */
 @media (max-width: 768px) {
     .banner-section {
         margin-top: 55px;
     }
     
     .banner-nav {
-        width: 30px;
-        height: 30px;
-        font-size: 0.9rem;
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
     }
     
     .banner-nav-left {
@@ -1036,10 +1035,18 @@
     
     .banner-dots {
         bottom: 8px;
+        gap: 6px;
+    }
+    
+    .banner-dot {
+        width: 6px;
+        height: 6px;
+    }
+    
+    .banner-dot.active {
+        width: 14px;
     }
 }
-
-
 
         /* ========== HERO SECTION ========== */
         .hero-section {
@@ -1666,24 +1673,24 @@
     </nav>
 
     <!-- ========== BANNER SLIDER ========== -->
-    <div class="banner-section">
-        <div class="banner-container" id="bannerContainer">
-            <div class="banner-slides" id="bannerSlides">
-                <div class="banner-slide">
-                    <img src="images/banner1.jpeg" alt="Special Discount Banner">
-                </div>
-                <div class="banner-slide">
-                    <img src="images/banner2.jpeg" alt="Arveluna Collection">
-                </div>
-                <div class="banner-slide">
-                    <img src="images/banner3.jpeg" alt="Handmade with Love">
-                </div>
+<div class="banner-section">
+    <div class="banner-container" id="bannerContainer">
+        <div class="banner-slides" id="bannerSlides">
+            <div class="banner-slide">
+                <img src="images/banner1.jpeg" alt="Special Offer Banner">
             </div>
-            <div class="banner-nav banner-nav-left" id="bannerPrev">❮</div>
-            <div class="banner-nav banner-nav-right" id="bannerNext">❯</div>
-            <div class="banner-dots" id="bannerDots"></div>
+            <div class="banner-slide">
+                <img src="images/banner2.jpeg" alt="Free Shipping Banner">
+            </div>
+            <div class="banner-slide">
+                <img src="images/banner3.jpeg" alt="Arveluna Collection">
+            </div>
         </div>
+        <div class="banner-nav banner-nav-left" id="bannerPrev">❮</div>
+        <div class="banner-nav banner-nav-right" id="bannerNext">❯</div>
+        <div class="banner-dots" id="bannerDots"></div>
     </div>
+</div>
 
     <!-- ========== HOME VIEW ========== -->
     <div id="homeView">
