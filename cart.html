@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Keranjang Belanja - Arveluna Candle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #fefcf8;
+            color: #2a2a2a;
+            line-height: 1.5;
+        }
+
+        /* ========== NAVIGASI ========== */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 5%;
+            background: rgba(254, 252, 248, 0.98);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #e8e0d5;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: #2a2a2a;
+            cursor: pointer;
+        }
+
+        .logo span {
+            font-weight: 400;
+            font-size: 0.9rem;
+            color: #b87c4e;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #2a2a2a;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: #b87c4e;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 1.2rem;
+            align-items: center;
+        }
+
+        .nav-icons span {
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .nav-icons span:hover {
+            color: #b87c4e;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #2a2a2a;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-wrap: wrap;
+                padding: 0.8rem 5%;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                gap: 0;
+                padding: 1rem 0;
+                order: 3;
+            }
+            .nav-links.show {
+                display: flex;
+            }
+            .nav-links li {
+                width: 100%;
+                text-align: center;
+            }
+            .nav-links a {
+                display: block;
+                padding: 0.8rem 0;
+            }
+            .nav-icons {
+                gap: 1rem;
+            }
+        }
+
+        /* ========== BREADCRUMB ========== */
+        .breadcrumb {
+            padding: 1rem 5%;
+            background: #fefcf8;
+            border-bottom: 1px solid #eee;
+        }
+
+        .breadcrumb a {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .breadcrumb a:hover {
+            color: #b87c4e;
+        }
+
+        .breadcrumb span {
+            color: #b87c4e;
+        }
+
+        /* ========== CART SECTION ========== */
+        .cart-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 5%;
+        }
+
+        .cart-header {
+            margin-bottom: 2rem;
+        }
+
+        .cart-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #2a2a2a;
+        }
+
+        .cart-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3rem;
+        }
+
+        .cart-items {
+            flex: 2;
+            min-width: 280px;
+        }
+
+        .cart-summary {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        /* Cart Item */
+        .cart-item {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .cart-item-image {
+            width: 100px;
+            height: 100px;
+            background: #f5efe6;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .cart-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cart-item-details {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .cart-item-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .cart-item-price {
+            color: #b87c4e;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: #b87c4e;
+            color: white;
+        }
+
+        .quantity-number {
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .cart-item-total {
+            font-weight: 700;
+            color: #b87c4e;
+            min-width: 100px;
+            text-align: right;
+            font-size: 1.1rem;
+        }
+
+        .cart-item-remove {
+            background: none;
+            border: none;
+            color: #d32f2f;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .cart-item-remove:hover {
+            background: #ffebee;
+        }
+
+        /* Cart Summary */
+        .summary-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 100px;
+        }
+
+        .summary-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-top: 2px solid #f0f0f0;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-checkout {
+            width: 100%;
+            padding: 0.9rem;
+            background: #b87c4e;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-checkout:hover {
+            background: #9a663e;
+        }
+
+        .btn-continue {
+            width: 100%;
+            padding: 0.8rem;
+            background: transparent;
+            color: #2a2a2a;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 1rem;
+            transition: all 0.3s;
+            text-align: center;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-continue:hover {
+            border-color: #b87c4e;
+            color: #b87c4e;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 20px;
+        }
+
+        .empty-cart p {
+            margin-bottom: 1.5rem;
+            color: #666;
+        }
+
+        .empty-cart-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .promo-code {
+            margin-top: 1rem;
+        }
+
+        .promo-code input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .promo-code input:focus {
+            outline: none;
+            border-color: #b87c4e;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a1a1a;
+            color: #ccc;
+            padding: 2rem 5%;
+            margin-top: 3rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-col h4 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .footer-col p {
+            color: #999;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .footer-col a {
+            color: #999;
+            text-decoration: none;
+        }
+
+        .footer-col a:hover {
+            color: #b87c4e;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cart-item-total {
+                text-align: left;
+            }
+            .cart-item-quantity {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVIGASI ========== -->
+    <nav class="navbar" id="navbar">
+        <a href="index.html" class="logo">ARVELUNA<span>candle</span></a>
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html">Shop</a></li>
+            <li><a href="index.html">About</a></li>
+            <li><a href="index.html">Journal</a></li>
+        </ul>
+        <div class="nav-icons">
+            <span>👤</span>
+            <span onclick="window.location.href='cart.html'">🛒</span>
+        </div>
+    </nav>
+
+    <!-- ========== BREADCRUMB ========== -->
+    <div class="breadcrumb">
+        <a href="index.html">Home</a> / <span>Keranjang Belanja</span>
+    </div>
+
+    <!-- ========== CART SECTION ========== -->
+    <div class="cart-container">
+        <div class="cart-header">
+            <h1>Your Shopping Cart</h1>
+        </div>
+        
+        <div class="cart-grid">
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items akan diisi JavaScript -->
+            </div>
+            
+            <div class="cart-summary">
+                <div class="summary-card">
+                    <h3>Ringkasan Belanja</h3>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">Rp 0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Pengiriman</span>
+                        <span>Dihitung saat checkout</span>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span id="total">Rp 0</span>
+                    </div>
+                    <button class="btn-checkout" onclick="checkout()">Checkout →</button>
+                    <a href="index.html" class="btn-continue">← Continue Shopping</a>
+                    
+                    <div class="promo-code">
+                        <input type="text" id="promoCode" placeholder="Got a promotional code?">
+                        <button class="btn-continue" style="margin-top: 0;" onclick="applyPromo()">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>ARVELUNA</h4>
+                <p>Handcrafted candles designed to bring calm, beauty, and intention into your daily life.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <p><a href="index.html">Home</a></p>
+                <p><a href="index.html">Shop</a></p>
+                <p><a href="index.html">About</a></p>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <p>📞 +62 812 3456 7890</p>
+                <p>✉️ hello@arveluna.com</p>
+                <p>Mon-Sat, 10am-5pm</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2024 Arveluna Candle. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // ========== HAMBURGER MENU ==========
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('show');
+            });
+        }
+
+        // ========== CART FUNCTIONS ==========
+        function getCart() {
+            const cart = localStorage.getItem('arvelunaCart');
+            return cart ? JSON.parse(cart) : [];
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem('arvelunaCart', JSON.stringify(cart));
+        }
+
+        function formatPrice(price) {
+            return `Rp ${price.toLocaleString('id-ID')},00`;
+        }
+
+        function renderCart() {
+            const cart = getCart();
+            const cartItemsContainer = document.getElementById('cartItems');
+            const subtotalSpan = document.getElementById('subtotal');
+            const totalSpan = document.getElementById('total');
+            
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <p>Keranjang belanja Anda masih kosong</p>
+                        <a href="index.html" class="btn-continue" style="display: inline-block; width: auto; padding: 0.8rem 2rem;">Belanja Sekarang →</a>
+                    </div>
+                `;
+                subtotalSpan.textContent = 'Rp 0';
+                totalSpan.textContent = 'Rp 0';
+                return;
+            }
+            
+            let subtotal = 0;
+            
+            cartItemsContainer.innerHTML = cart.map((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                return `
+                    <div class="cart-item" data-index="${index}">
+                        <div class="cart-item-image">
+                            <img src="${item.image}" alt="${item.name}">
+                        </div>
+                        <div class="cart-item-details">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">${formatPrice(item.price)}</div>
+                            <div class="cart-item-quantity">
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, -1)">−</button>
+                                <span class="quantity-number">${item.quantity}</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button>
+                                <button class="cart-item-remove" onclick="removeItem(${index})">Hapus</button>
+                            </div>
+                        </div>
+                        <div class="cart-item-total">${formatPrice(itemTotal)}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            subtotalSpan.textContent = formatPrice(subtotal);
+            totalSpan.textContent = formatPrice(subtotal);
+        }
+        
+        window.updateQuantity = function(index, delta) {
+            const cart = getCart();
+            if (cart[index]) {
+                cart[index].quantity += delta;
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+                saveCart(cart);
+                renderCart();
+            }
+        }
+        
+        window.removeItem = function(index) {
+            const cart = getCart();
+            cart.splice(index, 1);
+            saveCart(cart);
+            renderCart();
+        }
+        
+        window.checkout = function() {
+            const cart = getCart();
+            if (cart.length === 0) {
+                alert('Keranjang Anda masih kosong!');
+                return;
+            }
+            
+            // Hitung total
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            alert(`🚀 Checkout\n\nTotal belanja: Rp ${total.toLocaleString('id-ID')},00\n\nTerima kasih telah berbelanja di Arveluna!\n\nFitur pembayaran akan segera hadir.`);
+        }
+        
+        window.applyPromo = function() {
+            const code = document.getElementById('promoCode').value.trim().toUpperCase();
+            if (code === 'ARVELUNA10') {
+                alert('✅ Kode promo berhasil! Diskon 10% akan diterapkan saat checkout.');
+            } else if (code === 'ARVELUNA20') {
+                alert('✅ Kode promo berhasil! Diskon 20% akan diterapkan saat checkout.');
+            } else if (code === 'FREESHIPPING') {
+                alert('✅ Kode promo berhasil! Gratis ongkir untuk pesanan Anda.');
+            } else if (code) {
+                alert('Kode promo tidak valid. Coba kode: ARVELUNA10, ARVELUNA20, atau FREESHIPPING');
+            } else {
+                alert('Masukkan kode promo terlebih dahulu.');
+            }
+        }
+        
+        // Render cart saat halaman dimuat
+        renderCart();
+    </script>
+</body>
+</html>
