@@ -927,9 +927,9 @@
             }
         }
 
-/* ========== BANNER SLIDER - JARAK DARI NAVBAR LEBIH BESAR ========== */
+/* ========== BANNER SLIDER - TAMBAH TINGGI BAWAH ========== */
 .banner-section {
-    margin-top: 80px;
+    margin-top: 70px;
     position: relative;
     width: 100%;
     overflow: hidden;
@@ -959,50 +959,54 @@
     height: auto;
     display: block;
     object-fit: cover;
-    object-position: center;
+    object-position: top;
 }
 
 /* DESKTOP */
 @media (min-width: 1024px) {
     .banner-section {
-        margin-top: 90px;
+        margin-top: 80px;
     }
     .banner-slide img {
-        max-height: 380px;
+        max-height: 420px;
         object-fit: cover;
+        object-position: top;
     }
 }
 
 /* TABLET */
 @media (min-width: 768px) and (max-width: 1023px) {
     .banner-section {
-        margin-top: 85px;
+        margin-top: 75px;
     }
     .banner-slide img {
-        max-height: 320px;
+        max-height: 360px;
         object-fit: cover;
+        object-position: top;
     }
 }
 
 /* HP */
 @media (max-width: 767px) {
     .banner-section {
-        margin-top: 75px;
+        margin-top: 65px;
     }
     .banner-slide img {
-        max-height: 240px;
+        max-height: 280px;
         object-fit: cover;
+        object-position: top;
     }
 }
 
 /* HP KECIL */
 @media (max-width: 480px) {
     .banner-section {
-        margin-top: 70px;
+        margin-top: 60px;
     }
     .banner-slide img {
-        max-height: 200px;
+        max-height: 250px;
         object-fit: cover;
+        object-position: top;
     }
 }
 
@@ -1039,7 +1043,7 @@
 
 .banner-dots {
     position: absolute;
-    bottom: 12px;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -1075,7 +1079,7 @@
         right: 5px;
     }
     .banner-dots {
-        bottom: 8px;
+        bottom: 10px;
     }
     .banner-dot {
         width: 6px;
@@ -1085,11 +1089,6 @@
         width: 14px;
     }
 }
-
-
-
-
-
 
         /* ========== HERO SECTION ========== */
         .hero-section {
