@@ -927,9 +927,9 @@
             }
         }
 
-/* ========== BANNER SLIDER - STRETCH LEBAR PENUH ========== */
+/* ========== BANNER SLIDER - JARAK DARI NAVBAR LEBIH BESAR ========== */
 .banner-section {
-    margin-top: 65px;
+    margin-top: 80px;
     position: relative;
     width: 100%;
     overflow: hidden;
@@ -965,7 +965,7 @@
 /* DESKTOP */
 @media (min-width: 1024px) {
     .banner-section {
-        margin-top: 80px;
+        margin-top: 90px;
     }
     .banner-slide img {
         max-height: 380px;
@@ -976,10 +976,10 @@
 /* TABLET */
 @media (min-width: 768px) and (max-width: 1023px) {
     .banner-section {
-        margin-top: 70px;
+        margin-top: 85px;
     }
     .banner-slide img {
-        max-height: 300px;
+        max-height: 320px;
         object-fit: cover;
     }
 }
@@ -987,10 +987,10 @@
 /* HP */
 @media (max-width: 767px) {
     .banner-section {
-        margin-top: 60px;
+        margin-top: 75px;
     }
     .banner-slide img {
-        max-height: 220px;
+        max-height: 240px;
         object-fit: cover;
     }
 }
@@ -998,10 +998,10 @@
 /* HP KECIL */
 @media (max-width: 480px) {
     .banner-section {
-        margin-top: 58px;
+        margin-top: 70px;
     }
     .banner-slide img {
-        max-height: 180px;
+        max-height: 200px;
         object-fit: cover;
     }
 }
@@ -1033,9 +1033,13 @@
     right: 10px;
 }
 
+.banner-nav:hover {
+    background: rgba(184, 124, 78, 0.8);
+}
+
 .banner-dots {
     position: absolute;
-    bottom: 10px;
+    bottom: 12px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -1071,7 +1075,7 @@
         right: 5px;
     }
     .banner-dots {
-        bottom: 6px;
+        bottom: 8px;
     }
     .banner-dot {
         width: 6px;
@@ -1081,6 +1085,7 @@
         width: 14px;
     }
 }
+
 
 
 
